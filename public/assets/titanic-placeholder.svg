@@ -1,0 +1,16 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="540" rx="28" fill="#F0F5FF"/>
+  <rect x="72" y="356" width="816" height="46" rx="23" fill="#1877F2"/>
+  <path d="M148 310H812L762 358H202L148 310Z" fill="#1C2B4A"/>
+  <path d="M238 236H706L772 310H172L238 236Z" fill="#FFFFFF" stroke="#D8E2F3" stroke-width="6"/>
+  <rect x="285" y="186" width="96" height="50" rx="8" fill="#1877F2"/>
+  <rect x="418" y="168" width="96" height="68" rx="8" fill="#42B72A"/>
+  <rect x="552" y="188" width="96" height="48" rx="8" fill="#1877F2"/>
+  <circle cx="325" cy="274" r="18" fill="#D8E2F3"/>
+  <circle cx="410" cy="274" r="18" fill="#D8E2F3"/>
+  <circle cx="495" cy="274" r="18" fill="#D8E2F3"/>
+  <circle cx="580" cy="274" r="18" fill="#D8E2F3"/>
+  <circle cx="665" cy="274" r="18" fill="#D8E2F3"/>
+  <path d="M132 430C190 398 253 398 311 430C369 462 432 462 490 430C548 398 611 398 669 430C727 462 790 462 848 430" stroke="#1877F2" stroke-width="14" stroke-linecap="round"/>
+  <text x="480" y="110" text-anchor="middle" fill="#1C2B4A" font-family="Arial, sans-serif" font-size="38" font-weight="700">Titanic Data Story</text>
+</svg>

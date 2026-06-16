@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "project": "From Data to Discovery \u2014 Lessons from the Titanic Project",
+    "model": "Logistic Regression",
+    "dataset": "OpenML Titanic 1309-row dataset",
+    "testAccuracy": 0.8473282442748091,
+    "accuracyPercent": 84.7328244274809,
+    "warning": "Accuracy may vary depending on preprocessing, dataset version, random state, and feature engineering."
+  },
+  "inputFeatures": [
+    "pclass",
+    "sex",
+    "age",
+    "sibsp",
+    "parch",
+    "fare",
+    "embarked",
+    "family_size",
+    "is_alone",
+    "title",
+    "has_cabin"
+  ],
+  "numericFeatures": [
+    "age",
+    "sibsp",
+    "parch",
+    "fare",
+    "family_size"
+  ],
+  "categoricalFeatures": [
+    "pclass",
+    "sex",
+    "embarked",
+    "is_alone",
+    "title",
+    "has_cabin"
+  ],
+  "numericImputerStatistics": {
+    "age": 28.0,
+    "sibsp": 0.0,
+    "parch": 0.0,
+    "fare": 13.81665,
+    "family_size": 1.0
+  },
+  "numericScalerMean": {
+    "age": 29.284065616045847,
+    "sibsp": 0.48424068767908307,
+    "parch": 0.3858643744030564,
+    "fare": 32.14931122254059,
+    "family_size": 1.8701050620821393
+  },
+  "numericScalerScale": {
+    "age": 12.857821036594602,
+    "sibsp": 1.0097376754415088,
+    "parch": 0.8620796209830028,
+    "fare": 48.87236461750263,
+    "family_size": 1.5594963702394564
+  },
+  "categoricalImputerStatistics": {
+    "pclass": 3,
+    "sex": "male",
+    "embarked": "S",
+    "is_alone": 1,
+    "title": "Mr",
+    "has_cabin": 0
+  },
+  "categoricalCategories": {
+    "pclass": [
+      1,
+      2,
+      3
+    ],
+    "sex": [
+      "female",
+      "male"
+    ],
+    "embarked": [
+      "C",
+      "Q",
+      "S"
+    ],
+    "is_alone": [
+      0,
+      1
+    ],
+    "title": [
+      "Master",
+      "Miss",
+      "Mr",
+      "Mrs",
+      "Rare"
+    ],
+    "has_cabin": [
+      0,
+      1
+    ]
+  },
+  "oneHotDropFirst": true,
+  "encodedFeatureNames": [
+    "num__age",
+    "num__sibsp",
+    "num__parch",
+    "num__fare",
+    "num__family_size",
+    "cat__pclass_2",
+    "cat__pclass_3",
+    "cat__sex_male",
+    "cat__embarked_Q",
+    "cat__embarked_S",
+    "cat__is_alone_1",
+    "cat__title_Miss",
+    "cat__title_Mr",
+    "cat__title_Mrs",
+    "cat__title_Rare",
+    "cat__has_cabin_1"
+  ],
+  "coefficients": [
+    -0.4253905423333466,
+    -0.39461064984113653,
+    -0.06159293365594775,
+    0.10482857462489303,
+    -0.2895494095360275,
+    -0.24682200294633957,
+    -0.8864950401372063,
+    -0.36254580071315823,
+    -0.5933246289352363,
+    -0.5055540141704079,
+    -0.5026471471026616,
+    0.32411614340857636,
+    -1.7519346544467624,
+    0.9145041136091998,
+    -1.0903138461500093,
+    1.0058746689076778
+  ],
+  "intercept": 1.4518243041855152
+}

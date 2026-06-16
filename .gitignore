@@ -1,0 +1,12 @@
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+venv/
+data/raw/
+data/large/
+node_modules/
+dist/
+.vite/
+npm-debug.log*

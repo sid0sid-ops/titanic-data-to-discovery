@@ -1,0 +1,59 @@
+[
+  {
+    "profile": "Young third-class male passenger",
+    "input": {
+      "pclass": 3,
+      "sex": "male",
+      "age": 25,
+      "sibsp": 0,
+      "parch": 0,
+      "fare": 7.25,
+      "embarked": "S",
+      "family_size": 1,
+      "is_alone": 1,
+      "title": "Mr",
+      "has_cabin": 0
+    },
+    "probability": 0.11000779187542277,
+    "prediction": 0,
+    "label": "Not Survived"
+  },
+  {
+    "profile": "First-class female passenger",
+    "input": {
+      "pclass": 1,
+      "sex": "female",
+      "age": 38,
+      "sibsp": 1,
+      "parch": 0,
+      "fare": 71.28,
+      "embarked": "C",
+      "family_size": 2,
+      "is_alone": 0,
+      "title": "Mrs",
+      "has_cabin": 1
+    },
+    "probability": 0.9511848053170431,
+    "prediction": 1,
+    "label": "Survived"
+  },
+  {
+    "profile": "Child passenger",
+    "input": {
+      "pclass": 2,
+      "sex": "male",
+      "age": 6,
+      "sibsp": 1,
+      "parch": 1,
+      "fare": 26.0,
+      "embarked": "S",
+      "family_size": 3,
+      "is_alone": 0,
+      "title": "Master",
+      "has_cabin": 0
+    },
+    "probability": 0.6544870075170257,
+    "prediction": 1,
+    "label": "Survived"
+  }
+]
