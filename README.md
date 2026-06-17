@@ -382,5 +382,3 @@ https://sid0sid-ops.github.io/titanic-data-to-discovery/
 - Seaborn Titanic dataset.
 - Scikit-Learn documentation for Pipeline and ColumnTransformer.
 - Project blueprint: `docs/Titanic Data Science Blueprint.docx`.
-# titanic-data-to-discovery
-# titanic-data-to-discovery
