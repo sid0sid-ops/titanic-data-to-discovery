@@ -87,14 +87,14 @@ export function buildColabPassengerCode(input) {
 
   return `new_passenger = pd.DataFrame([{\n` +
          `    "pclass": ${input.pclass},\n` +
-         `    "name": "${nameString}",\n` +
          `    "sex": "${input.sex}",\n` +
          `    "age": ${input.age},\n` +
          `    "sibsp": ${input.sibsp},\n` +
          `    "parch": ${input.parch},\n` +
          `    "fare": ${input.fare},\n` +
          `    "embarked": "${input.embarked}",\n` +
-         `    "cabin": ${cabinValue}\n` +
+         `    "cabin": ${cabinValue},\n` +
+         `    "name": "${nameString}"\n` +
          `}])\n\n` +
          `prediction = model.predict(new_passenger)\n` +
          `probability = model.predict_proba(new_passenger)[:, 1]\n` +

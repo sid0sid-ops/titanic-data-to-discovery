@@ -1,14 +1,16 @@
 from pathlib import Path
 import json
+import re
 
 import numpy as np
 import pandas as pd
 
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -19,21 +21,67 @@ MODEL_PATH = MODEL_DIR / "titanic_logistic_model.json"
 TEST_PREDICTIONS_PATH = MODEL_DIR / "test_predictions.json"
 DATA_URL = "https://www.openml.org/data/get_csv/16826755/phpMYEkMl"
 
-FEATURES = [
-    "pclass",
-    "sex",
-    "age",
-    "sibsp",
-    "parch",
-    "fare",
-    "embarked",
-    "family_size",
-    "is_alone",
-    "title",
-    "has_cabin",
-]
 NUMERIC_FEATURES = ["age", "sibsp", "parch", "fare", "family_size"]
 CATEGORICAL_FEATURES = ["pclass", "sex", "embarked", "is_alone", "title", "has_cabin"]
+
+
+class GroupMedianAgeImputer(BaseEstimator, TransformerMixin):
+    """Impute missing age from training-fold medians grouped by pclass and sex."""
+    def __init__(self, age_col="age", group_cols=("pclass", "sex")):
+        self.age_col = age_col
+        self.group_cols = group_cols
+        self.group_medians_ = {}
+        self.global_median_ = None
+
+    def fit(self, X, y=None):
+        X_fit = X.copy()
+        self.global_median_ = X_fit[self.age_col].median()
+        medians = X_fit.groupby(list(self.group_cols), dropna=False)[self.age_col].median()
+        self.group_medians_ = medians.to_dict()
+        return self
+
+    def transform(self, X):
+        X_out = X.copy()
+        def fill_age(row):
+            if pd.isna(row[self.age_col]):
+                key = tuple(row[col] for col in self.group_cols)
+                return self.group_medians_.get(key, self.global_median_)
+            return row[self.age_col]
+        X_out[self.age_col] = X_out.apply(fill_age, axis=1)
+        return X_out
+
+
+class TitanicFeatureEngineer(BaseEstimator, TransformerMixin):
+    """Create leakage-safe Titanic model features inside the pipeline."""
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        X_out = X.copy()
+        X_out["family_size"] = X_out["sibsp"] + X_out["parch"] + 1
+        X_out["is_alone"] = (X_out["family_size"] == 1).astype(int)
+
+        def extract_title(name):
+            if not isinstance(name, str):
+                return "Mr"
+            match = re.search(r",\s*([^\.]+)\.", name)
+            return match.group(1).strip() if match else "Mr"
+
+        X_out["title"] = X_out["name"].apply(extract_title)
+        title_mapping = {
+            "Mr": "Mr",
+            "Mrs": "Mrs",
+            "Miss": "Miss",
+            "Master": "Master",
+            "Mme": "Mrs",
+            "Ms": "Miss",
+            "Mlle": "Miss",
+        }
+        X_out["title"] = X_out["title"].map(title_mapping).fillna("Rare")
+        X_out["has_cabin"] = X_out["cabin"].notna().astype(int)
+
+        leakage_or_raw = ["passengerid", "name", "ticket", "cabin", "boat", "body", "home_dest"]
+        return X_out.drop(columns=[col for col in leakage_or_raw if col in X_out.columns])
 
 
 def clean_data(df):
@@ -46,25 +94,15 @@ def clean_data(df):
         .str.replace(" ", "_", regex=False)
     )
     df = df.replace("?", np.nan)
-    df["age"] = pd.to_numeric(df["age"], errors="coerce")
-    df["fare"] = pd.to_numeric(df["fare"], errors="coerce")
+    for numeric_column in ["age", "fare"]:
+        if numeric_column in df.columns:
+            df[numeric_column] = pd.to_numeric(df[numeric_column], errors="coerce")
     return df
 
 
-def engineer_features(df):
-    df_model = df.copy()
-    df_model["family_size"] = df_model["sibsp"] + df_model["parch"] + 1
-    df_model["is_alone"] = np.where(df_model["family_size"] == 1, 1, 0)
-    df_model["title"] = df_model["name"].str.extract(r",\s*([^\.]+)\.", expand=False).str.strip()
-    df_model["title"] = df_model["title"].replace({"Mlle": "Miss", "Ms": "Miss", "Mme": "Mrs"})
-    df_model["title"] = np.where(df_model["title"].isin(["Mr", "Mrs", "Miss", "Master"]), df_model["title"], "Rare")
-    df_model["has_cabin"] = np.where(df_model["cabin"].notna(), 1, 0)
-    return df_model
-
-
-def train_model(df_model):
-    X = df_model[FEATURES].copy()
-    y = df_model["survived"].astype(int)
+def train_model(df_raw):
+    X = df_raw.drop(columns=["survived"])
+    y = df_raw["survived"].astype(int)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -92,16 +130,33 @@ def train_model(df_model):
             ("cat", categorical_pipeline, CATEGORICAL_FEATURES),
         ]
     )
-    model = Pipeline(
+    base_pipeline = Pipeline(
         steps=[
-            ("preprocessor", preprocessor),
+            ("group_age_imputer", GroupMedianAgeImputer()),
+            ("feature_engineer", TitanicFeatureEngineer()),
+            ("preprocess", preprocessor),
             ("classifier", LogisticRegression(max_iter=1000, solver="liblinear", random_state=42)),
         ]
     )
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    
+    param_grid = {
+        "classifier__C": [0.1, 1.0, 10.0]
+    }
+    
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    grid_search = GridSearchCV(
+        estimator=base_pipeline,
+        param_grid=param_grid,
+        cv=cv,
+        scoring="accuracy",
+        n_jobs=-1
+    )
+    grid_search.fit(X_train, y_train)
+    best_pipeline = grid_search.best_estimator_
+    
+    y_pred = best_pipeline.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    return model, accuracy
+    return best_pipeline, accuracy
 
 
 def jsonable(value):
@@ -113,9 +168,9 @@ def jsonable(value):
 
 
 def export_model(model, accuracy):
-    preprocessor = model.named_steps["preprocessor"]
-    numeric_pipeline = preprocessor.named_transformers_["num"]
-    categorical_pipeline = preprocessor.named_transformers_["cat"]
+    preprocess = model.named_steps["preprocess"]
+    numeric_pipeline = preprocess.named_transformers_["num"]
+    categorical_pipeline = preprocess.named_transformers_["cat"]
     classifier = model.named_steps["classifier"]
 
     numeric_imputer = numeric_pipeline.named_steps["imputer"]
@@ -132,7 +187,7 @@ def export_model(model, accuracy):
             "accuracyPercent": float(accuracy * 100),
             "warning": "Accuracy may vary depending on preprocessing, dataset version, random state, and feature engineering.",
         },
-        "inputFeatures": FEATURES,
+        "inputFeatures": ["pclass", "name", "sex", "age", "sibsp", "parch", "fare", "embarked", "cabin"],
         "numericFeatures": NUMERIC_FEATURES,
         "categoricalFeatures": CATEGORICAL_FEATURES,
         "numericImputerStatistics": dict(zip(NUMERIC_FEATURES, jsonable(numeric_imputer.statistics_))),
@@ -144,7 +199,7 @@ def export_model(model, accuracy):
             for feature, categories in zip(CATEGORICAL_FEATURES, encoder.categories_)
         },
         "oneHotDropFirst": True,
-        "encodedFeatureNames": jsonable(preprocessor.get_feature_names_out()),
+        "encodedFeatureNames": jsonable(preprocess.get_feature_names_out()),
         "coefficients": jsonable(classifier.coef_[0]),
         "intercept": float(classifier.intercept_[0]),
     }
@@ -153,76 +208,29 @@ def export_model(model, accuracy):
     return export
 
 
-def sigmoid(value):
-    return 1 / (1 + np.exp(-value))
-
-
 def write_test_predictions(model):
-    examples = pd.DataFrame(
-        [
-            {
-                "profile": "Young third-class male passenger",
-                "pclass": 3,
-                "sex": "male",
-                "age": 25,
-                "sibsp": 0,
-                "parch": 0,
-                "fare": 7.25,
-                "embarked": "S",
-                "family_size": 1,
-                "is_alone": 1,
-                "title": "Mr",
-                "has_cabin": 0,
-            },
-            {
-                "profile": "First-class female passenger",
-                "pclass": 1,
-                "sex": "female",
-                "age": 38,
-                "sibsp": 1,
-                "parch": 0,
-                "fare": 71.28,
-                "embarked": "C",
-                "family_size": 2,
-                "is_alone": 0,
-                "title": "Mrs",
-                "has_cabin": 1,
-            },
-            {
-                "profile": "Child passenger",
-                "pclass": 2,
-                "sex": "male",
-                "age": 6,
-                "sibsp": 1,
-                "parch": 1,
-                "fare": 26.0,
-                "embarked": "S",
-                "family_size": 3,
-                "is_alone": 0,
-                "title": "Master",
-                "has_cabin": 0,
-            },
-        ]
-    )
-    probabilities = model.predict_proba(examples[FEATURES])[:, 1]
-    predictions = model.predict(examples[FEATURES])
+    examples = pd.DataFrame([
+        {"pclass": 3, "sex": "male", "age": 22.0, "sibsp": 0, "parch": 0, "fare": 7.25, "embarked": "S", "cabin": np.nan, "name": "Single, Mr. Third Class"},
+        {"pclass": 1, "sex": "female", "age": 38.0, "sibsp": 1, "parch": 0, "fare": 71.28, "embarked": "C", "cabin": "C85", "name": "Married, Mrs. First Class"},
+        {"pclass": 2, "sex": "male", "age": 6.0, "sibsp": 1, "parch": 1, "fare": 26.00, "embarked": "S", "cabin": np.nan, "name": "Child, Master. Second Class"}
+    ])
+    probabilities = model.predict_proba(examples)[:, 1]
+    predictions = model.predict(examples)
     records = []
-    for row, probability, prediction in zip(examples.to_dict(orient="records"), probabilities, predictions):
-        records.append(
-            {
-                "profile": row.pop("profile"),
-                "input": row,
-                "probability": float(probability),
-                "prediction": int(prediction),
-                "label": "Survived" if int(prediction) == 1 else "Not Survived",
-            }
-        )
+    for idx, row in examples.iterrows():
+        records.append({
+            "profile": row["name"],
+            "input": row.to_dict(),
+            "probability": float(probabilities[idx]),
+            "prediction": int(predictions[idx]),
+            "label": "Survived" if int(predictions[idx]) == 1 else "Not Survived",
+        })
     TEST_PREDICTIONS_PATH.write_text(json.dumps(records, indent=2), encoding="utf-8")
 
 
 def main():
-    df = engineer_features(clean_data(pd.read_csv(DATA_URL)))
-    model, accuracy = train_model(df)
+    df_raw = clean_data(pd.read_csv(DATA_URL))
+    model, accuracy = train_model(df_raw)
     export_model(model, accuracy)
     write_test_predictions(model)
     print(f"Test Accuracy: {accuracy:.4f}")
