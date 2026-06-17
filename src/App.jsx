@@ -108,8 +108,7 @@ export default function App() {
   };
 
   const copyPythonCode = async () => {
-    const prepared = preparePassenger(input);
-    const code = buildColabPassengerCode(prepared);
+    const code = buildColabPassengerCode(input);
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(code);
       setCopied(true);

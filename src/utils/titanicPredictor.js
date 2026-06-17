@@ -75,11 +75,28 @@ export function predictPassenger(model, passengerInput) {
   };
 }
 
-export function buildColabPassengerCode(passenger) {
-  const lines = Object.entries(passenger).map(([key, value]) => {
-    const formatted = typeof value === 'string' ? `"${value}"` : value;
-    return `    "${key}": ${formatted},`;
-  });
+export function buildColabPassengerCode(input) {
+  let titlePrefix = 'Mr';
+  if (input.title === 'Mrs') titlePrefix = 'Mrs';
+  else if (input.title === 'Miss') titlePrefix = 'Miss';
+  else if (input.title === 'Master') titlePrefix = 'Master';
+  else if (input.title === 'Rare') titlePrefix = 'Dr';
 
-  return `new_passenger = pd.DataFrame([{\n${lines.join('\n')}\n}])\n\nprediction = model.predict(new_passenger)\nprobability = model.predict_proba(new_passenger)[:, 1]\nprint(prediction, probability)`;
+  const nameString = `Doe, ${titlePrefix}. Custom Passenger`;
+  const cabinValue = input.has_cabin ? '"C85"' : 'np.nan';
+
+  return `new_passenger = pd.DataFrame([{\n` +
+         `    "pclass": ${input.pclass},\n` +
+         `    "name": "${nameString}",\n` +
+         `    "sex": "${input.sex}",\n` +
+         `    "age": ${input.age},\n` +
+         `    "sibsp": ${input.sibsp},\n` +
+         `    "parch": ${input.parch},\n` +
+         `    "fare": ${input.fare},\n` +
+         `    "embarked": "${input.embarked}",\n` +
+         `    "cabin": ${cabinValue}\n` +
+         `}])\n\n` +
+         `prediction = model.predict(new_passenger)\n` +
+         `probability = model.predict_proba(new_passenger)[:, 1]\n` +
+         `print(f"Prediction: {prediction[0]} | Survival Probability: {probability[0]:.4f}")`;
 }
