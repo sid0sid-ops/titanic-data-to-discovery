@@ -383,7 +383,7 @@ def build_notebook():
                 """
                 ## 10. GridSearchCV Model Search
 
-                We set up a grid search comparing `LogisticRegression` against a non-linear `RandomForestClassifier` to find the optimal hyperparameters.
+                We set up a grid search searching over Logistic Regression hyper-parameters to find the optimal C regularization parameter.
                 """
             ),
             make_code_cell(
@@ -395,18 +395,9 @@ def build_notebook():
                     ("classifier", LogisticRegression(max_iter=1000, solver="liblinear", random_state=42))
                 ])
 
-                param_grid = [
-                    {
-                        "classifier": [LogisticRegression(max_iter=1000, solver="liblinear", random_state=42)],
-                        "classifier__C": [0.1, 1.0, 10.0],
-                    },
-                    {
-                        "classifier": [RandomForestClassifier(random_state=42, n_jobs=-1)],
-                        "classifier__n_estimators": [100],
-                        "classifier__max_depth": [3, 5],
-                        "classifier__min_samples_leaf": [1, 3],
-                    }
-                ]
+                param_grid = {
+                    "classifier__C": [0.1, 1.0, 10.0]
+                }
 
                 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
                 grid_search = GridSearchCV(
@@ -418,7 +409,7 @@ def build_notebook():
                 )
                 grid_search.fit(X_train, y_train)
 
-                print("GridSearchCV model comparison complete.")
+                print("GridSearchCV model search complete.")
                 print("Best params:", grid_search.best_params_)
                 print(f"Best cross-validation accuracy: {grid_search.best_score_:.4f}")
                 """
@@ -452,6 +443,15 @@ def build_notebook():
                 plt.title("Receiver Operating Characteristic (ROC) Curve")
                 plt.legend(loc="lower right")
                 plt.show()
+
+                def predict_and_print(passenger_df, pipeline_model):
+                    \"\"\"Predict survival outcome and probability for passenger scenarios and print in tabular format.\"\"\"
+                    prediction = pipeline_model.predict(passenger_df)
+                    probability = pipeline_model.predict_proba(passenger_df)[:, 1]
+                    
+                    for idx, row in passenger_df.iterrows():
+                        outcome = "SURVIVES" if prediction[idx] == 1 else "NOT SURVIVED"
+                        print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {probability[idx]:.4f} | Prediction: {outcome}")
                 """
             ),
             make_md_cell(
@@ -534,24 +534,18 @@ def build_notebook():
             ),
             make_code_cell(
                 """
+                # Setup model variable so copied code runs out-of-the-box
+                model = best_pipeline
+
                 custom_passengers = pd.DataFrame([
                     {"pclass": 3, "sex": "male", "age": 22.0, "sibsp": 0, "parch": 0, "fare": 7.25, "embarked": "S", "cabin": np.nan, "name": "Single, Mr. Third Class"},
                     {"pclass": 1, "sex": "female", "age": 38.0, "sibsp": 1, "parch": 0, "fare": 71.28, "embarked": "C", "cabin": "C85", "name": "Married, Mrs. First Class"},
                     {"pclass": 2, "sex": "male", "age": 6.0, "sibsp": 1, "parch": 1, "fare": 26.00, "embarked": "S", "cabin": np.nan, "name": "Child, Master. Second Class"}
                 ])
 
-                # Setup model variable so copied code runs out-of-the-box
-                model = best_pipeline
-
-                # Process custom scenarios
-                simulated_predictions = model.predict(custom_passengers)
-                simulated_probabilities = model.predict_proba(custom_passengers)[:, 1]
-
                 print("LIVE SIMULATION PREDICTIONS")
                 print("=" * 60)
-                for idx, row in custom_passengers.iterrows():
-                    outcome = "SURVIVES" if simulated_predictions[idx] == 1 else "NOT SURVIVED"
-                    print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {simulated_probabilities[idx]:.4f} | Prediction: {outcome}")
+                predict_and_print(custom_passengers, model)
 
                 # ==============================================================================
                 # CUSTOM COLAB SANDBOX

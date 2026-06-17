@@ -1123,6 +1123,9 @@ best_pipeline`}</code></pre>
                         <span>Run Notebook in Colab</span>
                       </a>
                     </div>
+                    <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '12px', lineHeight: '1.4' }}>
+                      💡 <strong>Tip:</strong> Copy the script first, open the notebook in Colab, and paste it into the custom sandbox cell at the very end to run!
+                    </p>
                   </>
                 ) : (
                   <p>Loading predictor weights...</p>

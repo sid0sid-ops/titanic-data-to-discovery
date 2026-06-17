@@ -85,7 +85,10 @@ export function buildColabPassengerCode(input) {
   const nameString = `Doe, ${titlePrefix}. Custom Passenger`;
   const cabinValue = input.has_cabin ? '"C85"' : 'np.nan';
 
-  return `new_passenger = pd.DataFrame([{\n` +
+  return `# ==============================================================================\n` +
+         `# PASSENGER SIMULATION SCRIPT (Copied from the Titanic companion webpage)\n` +
+         `# ==============================================================================\n` +
+         `new_passenger = pd.DataFrame([{\n` +
          `    "pclass": ${input.pclass},\n` +
          `    "sex": "${input.sex}",\n` +
          `    "age": ${input.age},\n` +
@@ -96,7 +99,5 @@ export function buildColabPassengerCode(input) {
          `    "cabin": ${cabinValue},\n` +
          `    "name": "${nameString}"\n` +
          `}])\n\n` +
-         `prediction = model.predict(new_passenger)\n` +
-         `probability = model.predict_proba(new_passenger)[:, 1]\n` +
-         `print(f"Prediction: {prediction[0]} | Survival Probability: {probability[0]:.4f}")`;
+         `predict_and_print(new_passenger, model)`;
 }

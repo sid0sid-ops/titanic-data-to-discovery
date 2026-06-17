@@ -10,10 +10,10 @@ export const badges = ['Pandas', 'NumPy', 'Matplotlib', 'Seaborn', 'Scikit-Learn
 export const workflow = ['Load', 'Clean', 'Explore', 'Visualize', 'Model', 'Predict', 'Communicate'];
 
 export const validatedResult = {
-  testAccuracy: '0.8473',
-  testAccuracyPercent: '84.73%',
+  testAccuracy: '0.8435',
+  testAccuracyPercent: '84.35%',
   source: 'current validated notebook run',
-  note: 'The validated notebook run achieved 84.73% test accuracy using the OpenML Titanic dataset and a leakage-safe Scikit-Learn pipeline.',
+  note: 'The validated notebook run achieved 84.35% test accuracy using the OpenML Titanic dataset and a leakage-safe Scikit-Learn pipeline.',
   caveat: 'This value is computed live in the notebook and may vary with preprocessing choices, random state, dataset version, and feature engineering.',
   metricPolicy: 'Do not fake any extra metrics. Only use metrics present in the notebook.',
 };
