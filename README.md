@@ -113,19 +113,18 @@ Pipeline:
 Feature engineering -> train/test split -> preprocessing -> Logistic Regression -> prediction -> evaluation
 ```
 
-## Advanced Professor-Review Modeling Section
+## Integrated Professional ML Pipeline
 
-The notebook also includes an optional advanced showcase section for academic review. It adds:
+The pipeline implements industry best practices for machine learning engineering and academic review, which are fully integrated into the main workflow steps:
 
-- Robust data ingestion with automatic source fallbacks.
 - Interactive Scikit-Learn pipeline visualization with `set_config(display="diagram")`.
 - A custom zero-leakage group median age imputer.
 - A custom feature engineering transformer.
-- Logistic Regression vs Random Forest comparison.
-- `GridSearchCV` with stratified cross-validation.
+- Logistic Regression vs Random Forest model comparison.
+- Hyperparameter optimization using `GridSearchCV` with stratified cross-validation.
 - ROC-AUC diagnostics and ROC curve visualization.
 
-This advanced section is separate from the validated baseline result. It may select a different best model and produce different metrics because it performs model comparison and hyperparameter search.
+This ensures all steps remain robust, clean, and leakage-safe.
 
 ## Advanced ML Workflow on the Website
 
