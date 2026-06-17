@@ -176,7 +176,6 @@ export default function App() {
       <nav className="navbar">
         <div className="navbar-container">
           <div className="navbar-logo">
-            <i className="fa-solid fa-circle-nodes"></i>
             <span>TitanicGram ML Showcase</span>
           </div>
           <div className="navbar-actions">
