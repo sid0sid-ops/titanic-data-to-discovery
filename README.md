@@ -374,6 +374,11 @@ The live website will be:
 ```text
 https://sid0sid-ops.github.io/titanic-data-to-discovery/
 ```
+## Acknowledgement
+
+This project was inspired by **Ashok Gopalakrishnan** during a lecture under the **IICT Summer Internship Program in AI & Machine Learning (2026)**. His discussion on using historical events as a foundation for data analysis encouraged me to explore the Titanic dataset as my first structured data science project.
+
+Through this work, I tried to connect history with Python-based data analysis, visualization, machine learning, and clear project communication. I also acknowledge the learning support of AI tools, which helped me structure, refine, and improve the project while understanding the workflow step by step.
 
 ## Credits
 
