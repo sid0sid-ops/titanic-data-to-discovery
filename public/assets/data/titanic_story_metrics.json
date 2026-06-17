@@ -1,0 +1,9 @@
+{
+  "total_passengers": 891,
+  "survival_rate": 0.3838383838383838,
+  "survival_rate_female": 0.7420382165605095,
+  "survival_rate_male": 0.18890814558058924,
+  "survival_rate_pclass1": 0.6296296296296297,
+  "survival_rate_pclass2": 0.47282608695652173,
+  "survival_rate_pclass3": 0.24236252545824846
+}

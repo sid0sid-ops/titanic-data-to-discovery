@@ -1,0 +1,47 @@
+[
+  {
+    "Model": "Gender Baseline",
+    "Accuracy": 0.7765,
+    "Precision": 0.7377,
+    "Recall": 0.6522,
+    "F1": 0.6923,
+    "ROC-AUC": 0.7534,
+    "Notes": "Baseline predicting all females survive and all males die."
+  },
+  {
+    "Model": "Logistic Regression",
+    "Accuracy": 0.8156,
+    "Precision": 0.7903,
+    "Recall": 0.7101,
+    "F1": 0.7481,
+    "ROC-AUC": 0.8659,
+    "Notes": "CV score on train: 0.8301."
+  },
+  {
+    "Model": "Decision Tree",
+    "Accuracy": 0.7821,
+    "Precision": 0.8,
+    "Recall": 0.5797,
+    "F1": 0.6723,
+    "ROC-AUC": 0.8397,
+    "Notes": "CV score on train: 0.8104."
+  },
+  {
+    "Model": "Random Forest",
+    "Accuracy": 0.7989,
+    "Precision": 0.8113,
+    "Recall": 0.6232,
+    "F1": 0.7049,
+    "ROC-AUC": 0.8481,
+    "Notes": "CV score on train: 0.8259."
+  },
+  {
+    "Model": "Gradient Boosting",
+    "Accuracy": 0.8101,
+    "Precision": 0.7869,
+    "Recall": 0.6957,
+    "F1": 0.7385,
+    "ROC-AUC": 0.829,
+    "Notes": "CV score on train: 0.8287."
+  }
+]
