@@ -451,7 +451,7 @@ def build_notebook():
                     
                     for idx, row in passenger_df.iterrows():
                         outcome = "SURVIVES" if prediction[idx] == 1 else "NOT SURVIVED"
-                        print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {probability[idx]:.4f} | Prediction: {outcome}")
+                        print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {probability[idx]:.4f} ({probability[idx]*100:.1f}%) | Prediction: {outcome}")
                 """
             ),
             make_md_cell(
