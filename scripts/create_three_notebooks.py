@@ -45,9 +45,9 @@ def create_kaggle_main_notebook():
                 
                 ### Workflow Steps:
                 1. **Environment & Library Setup** — Declare all libraries, set plot styles, and establish configurations.
-                2. **Get the Data (•)** — Ingest and audit Kaggle's `train.csv` and `test.csv` datasets. Check survival base rates.
-                3. **Explore (O,)** — Conduct Exploratory Data Analysis (EDA) using Pandas, Seaborn, and Plotly to discover demographic relationships.
-                4. **Clean & Interpolate (≤)** — Interpolate missing values (Age, Embarked) and encode categorical variables for modeling.
+                2. **Get the Data (•)** — Ingest and audit Kaggle's `train.csv` and `test.csv` datasets. Check survival base rates and visualize missing values.
+                3. **Explore (O,)** — Conduct extensive Exploratory Data Analysis (EDA) using Pandas, Seaborn, and Plotly to discover demographic relationships, distributions, correlations, and multi-dimensional interactions.
+                4. **Clean & Interpolate (≤)** — Interpolate missing values (Age, Embarked) and encode categorical variables for modeling. Verify using post-cleaning visualizations.
                 5. **Model (El)** — Train Logistic Regression and Decision Tree algorithms. Interpret coefficients and feature importances to see which factors drove survival.
                 6. **Predict & Evaluate (L, Il)** — Make predictions, compare predicted vs. actual survival for 10 sample passengers, compute key classification metrics, and analyze the Confusion Matrix and ROC Curve.
                 7. **Communicate (°)** — Synthesize insights and discuss the social/historical dimensions: how survival could have been improved by policy and technological actions, and how machine learning can aid safety systems.
@@ -85,7 +85,7 @@ def create_kaggle_main_notebook():
             
             make_md_cell("""
                 ## Step 2: Get the Data (•)
-                We load the Kaggle Titanic datasets (`train.csv` and `test.csv`) from possible local directories or fallbacks. We then perform a shape audit and run our first task: counting survivors vs. non-survivors in the training set.
+                We load the Kaggle Titanic datasets (`train.csv` and `test.csv`) from possible local directories or fallbacks. We then perform a shape audit, count survivors vs. non-survivors, and render a missing data heatmap to see which columns require interpolation.
             """),
             
             make_code_cell(r"""
@@ -140,17 +140,30 @@ def create_kaggle_main_notebook():
                 print(f"Survived (1):  {survived_counts.get(1, 0)} ({survived_pct.get(1, 0):.2f}%)")
             """),
             
+            make_code_cell(r"""
+                # Missing value visualization
+                plt.figure(figsize=(10, 6))
+                sns.heatmap(train.isnull(), yticklabels=False, cbar=False, cmap="viridis")
+                plt.title("Missing Data Heatmap (Raw train.csv)")
+                plt.show()
+                
+                print("Missing Values in Training Set:")
+                print(train.isnull().sum()[train.isnull().sum() > 0])
+            """),
+            
             make_md_cell("""
                 ## Step 3: Explore (O,)
-                We conduct Exploratory Data Analysis (EDA) to understand distributions and passenger relationships.
+                We conduct comprehensive Exploratory Data Analysis (EDA) to understand demographic distributions, correlations, family trends, and multi-dimensional interactions.
                 
                 ### Tasks:
                 1. Plot survival rates by Gender and Pclass using Seaborn (static).
-                2. Plot interactive multi-dimensional visualizations using Plotly.
+                2. Plot binned Age groups and Family sizes against survival.
+                3. Compute and plot correlation heatmaps of numeric features.
+                4. Create interactive multi-dimensional visualizations using Plotly.
             """),
             
             make_code_cell(r"""
-                # 1. Static Seaborn Plots
+                # 1. Demographics & Class Survival
                 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
                 # Survival by Gender
@@ -169,18 +182,69 @@ def create_kaggle_main_notebook():
                 
                 plt.tight_layout()
                 plt.show()
+            """),
+            
+            make_code_cell(r"""
+                # 2. Age & Fare Distributions
+                fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
                 # Age distribution vs Survival
-                plt.figure(figsize=(9, 5))
-                sns.histplot(data=train, x="Age", hue="Survived", multiple="stack", kde=True, palette="coolwarm", bins=30)
-                plt.title("Age Distribution of Passengers by Survival Status")
-                plt.xlabel("Age")
-                plt.ylabel("Passenger Count")
+                sns.histplot(data=train, x="Age", hue="Survived", multiple="stack", kde=True, palette="coolwarm", bins=30, ax=axes[0])
+                axes[0].set_title("Age Distribution of Passengers by Survival Status")
+                axes[0].set_xlabel("Age")
+                axes[0].set_ylabel("Passenger Count")
+
+                # Fare distribution (KDE plot comparing survived vs deceased)
+                sns.kdeplot(data=train, x="Fare", hue="Survived", fill=True, common_norm=False, palette="Set1", alpha=0.5, log_scale=True, ax=axes[1])
+                axes[1].set_title("Fare Distribution by Survival Status (Log Scale)")
+                axes[1].set_xlabel("Ticket Fare (GBP, Log Scale)")
+                axes[1].set_ylabel("Density")
+
+                plt.tight_layout()
                 plt.show()
             """),
             
             make_code_cell(r"""
-                # 2. Interactive Plotly Visualizations
+                # 3. Family Size & Port of Embarkation
+                fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+                # Family Size calculation
+                train_temp = train.copy()
+                train_temp["FamilySize"] = train_temp["SibSp"] + train_temp["Parch"] + 1
+
+                # Family Size vs Survival Rate
+                sns.pointplot(data=train_temp, x="FamilySize", y="Survived", color="#2c3e50", ax=axes[0])
+                axes[0].set_title("Survival Rate by Family Size")
+                axes[0].set_xlabel("Family Size (SibSp + Parch + 1)")
+                axes[0].set_ylabel("Survival Rate")
+
+                # Embarked Port vs Survival Rate
+                sns.pointplot(data=train, x="Embarked", y="Survived", hue="Sex", palette="Set2", ax=axes[1])
+                axes[1].set_title("Survival Rate by Port of Embarkation & Gender")
+                axes[1].set_xlabel("Port of Embarkation (C = Cherbourg, Q = Queenstown, S = Southampton)")
+                axes[1].set_ylabel("Survival Rate")
+
+                plt.tight_layout()
+                plt.show()
+            """),
+            
+            make_code_cell(r"""
+                # 4. Correlation Heatmap
+                plt.figure(figsize=(8, 6))
+                
+                # Copy dataframe and map categorical features for correlation
+                corr_df = train.copy()
+                corr_df["Sex_Male"] = corr_df["Sex"].map({"male": 1, "female": 0})
+                corr_df["Embarked_Code"] = corr_df["Embarked"].map({"C": 0, "Q": 1, "S": 2})
+                
+                numeric_cols = ["Survived", "Pclass", "Age", "SibSp", "Parch", "Fare", "Sex_Male", "Embarked_Code"]
+                sns.heatmap(corr_df[numeric_cols].corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, vmin=-1, vmax=1)
+                plt.title("Correlation Matrix of Numeric Titanic Features")
+                plt.show()
+            """),
+            
+            make_code_cell(r"""
+                # 5. Interactive Plotly Express Visualizations
                 # Prepare a clean visualization DataFrame
                 vis_df = train.copy()
                 vis_df["Survival Status"] = vis_df["Survived"].map({0: "Died", 1: "Survived"})
@@ -212,6 +276,33 @@ def create_kaggle_main_notebook():
                 fig_scatter.show()
             """),
             
+            make_code_cell(r"""
+                # 6. Advanced Multi-dimensional Plots (Plotly 3D and Parallel Categories)
+                # Plotly 3D Scatter: Age vs. Fare vs. Pclass
+                fig_3d = px.scatter_3d(
+                    vis_df.dropna(subset=["Age", "Fare"]), 
+                    x="Age", 
+                    y="Fare", 
+                    z="Pclass", 
+                    color="Survival Status",
+                    log_y=True,
+                    hover_name="Name",
+                    color_discrete_map={"Survived": "#2ca02c", "Died": "#d62728"},
+                    title="Interactive 3D Scatter: Age vs. Fare vs. Pclass"
+                )
+                fig_3d.show()
+
+                # Plotly Parallel Categories: Class -> Gender -> Embarked -> Survival
+                fig_parcat = px.parallel_categories(
+                    vis_df.dropna(subset=["Embarked", "Sex", "Ticket Class", "Survival Status"]), 
+                    dimensions=["Ticket Class", "Sex", "Embarked", "Survival Status"],
+                    color="Survived", 
+                    color_continuous_scale=px.colors.sequential.Viridis,
+                    title="Parallel Categories: Demographic Flow to Survival Outcome"
+                )
+                fig_parcat.show()
+            """),
+            
             make_md_cell("""
                 ## Step 4: Clean & Interpolate (≤)
                 Data cleaning is essential to handle missing values and encode categorical features.
@@ -221,6 +312,7 @@ def create_kaggle_main_notebook():
                 2. Fill missing values in `Embarked` with the mode.
                 3. Encode categorical features (`Sex`, `Embarked`).
                 4. Task: Perform assertions checking for remaining nulls in the key feature set.
+                5. Visualise missingness post-cleaning to verify success.
             """),
             
             make_code_cell(r"""
@@ -275,6 +367,14 @@ def create_kaggle_main_notebook():
 
                 print("\n=== Post-cleaning Status ===")
                 print("✓ Assertions passed: No missing values remain in the modeling features!")
+            """),
+            
+            make_code_cell(r"""
+                # Post-cleaning Heatmap Verification
+                plt.figure(figsize=(10, 6))
+                sns.heatmap(train_clean.isnull(), yticklabels=False, cbar=False, cmap="plasma")
+                plt.title("Missing Data Heatmap (Cleaned train_clean)")
+                plt.show()
             """),
             
             make_md_cell("""
@@ -432,7 +532,7 @@ def create_kaggle_main_notebook():
             
             make_code_cell(r"""
                 # Let's visualize the core survival split for final communication
-                fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+                fig, axes = plt.subplots(1, 3, figsize=(22, 6))
 
                 # Pclass vs Survival count breakdown
                 sns.countplot(data=train, x="Pclass", hue="Survived", palette="Set1", ax=axes[0])
@@ -447,6 +547,21 @@ def create_kaggle_main_notebook():
                 axes[1].set_xlabel("Passenger Class")
                 axes[1].set_ylabel("Age")
                 
+                # Title extraction and analysis
+                train_tmp = train.copy()
+                def extract_title(name):
+                    match = re.search(r",\s*([^.]+)\.", name)
+                    return match.group(1).strip() if match else "Mr"
+                train_tmp["Title"] = train_tmp["Name"].apply(extract_title)
+                title_map = {"Mr": "Mr", "Mrs": "Mrs", "Miss": "Miss", "Master": "Master", "Mme": "Mrs", "Ms": "Miss", "Mlle": "Miss"}
+                train_tmp["Title"] = train_tmp["Title"].map(title_map).fillna("Rare")
+                
+                # Title vs Survival Rate
+                sns.barplot(data=train_tmp, x="Title", y="Survived", palette="viridis", ax=axes[2])
+                axes[2].set_title("Survival Rate by Passenger Title")
+                axes[2].set_xlabel("Title")
+                axes[2].set_ylabel("Survival Rate")
+
                 plt.tight_layout()
                 plt.show()
                 
