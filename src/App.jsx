@@ -307,16 +307,17 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Dataset Tabs Switcher Centered ABOVE the Layout / Notebook Pipeline */}
-      <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '30px 24px 0 24px', display: 'flex', justifyContent: 'center' }}>
-        <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
-      </div>
-
       {/* Main Layout Container */}
-      <div className="layout-container" style={{ paddingTop: '10px' }}>
+      <div className="layout-container">
         
         {/* Sticky Table of Contents Sidebar */}
         <aside className="sidebar-sticky">
+          
+          {/* Dataset Switcher Just Above the Notebook Pipeline Box */}
+          <div style={{ marginBottom: '16px', width: '100%' }}>
+            <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
+          </div>
+
           <div className="toc-card">
             <div className="toc-title">Notebook Pipeline</div>
             <ul className="toc-list">
