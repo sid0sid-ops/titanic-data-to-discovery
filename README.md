@@ -27,7 +27,7 @@ The project is structured into exactly three Jupyter/Colab notebooks:
 
 ## 2. Kaggle Local Dataset (Default Workflow)
 
-The Kaggle local dataset is the default and main project dataset. It resides in the `titanic/` directory:
+The Kaggle local dataset is the default and main project dataset. It resides in the `kaggle/` directory:
 
 * `train.csv` (891 rows): Contains labels (`Survived`) and is used for EDA, training, and validation.
 * `test.csv` (418 rows): Contains passenger profiles with **hidden labels** (no `Survived` column). Used only for final predictions.

@@ -3,7 +3,7 @@ export const notebookGuide = [
     id: "00_Titanic_Kaggle_Main_Workflow.ipynb",
     title: "00: Titanic Kaggle Main Workflow",
     purpose: "Main project notebook implementing standard data cleaning, full EDA, Plotly charts, classical models training, evaluation, and exporting final Kaggle submission CSV.",
-    dataset: "Kaggle Dataset (titanic/train.csv, titanic/test.csv, titanic/gender_submission.csv)",
+    dataset: "Kaggle Dataset (kaggle/train.csv, kaggle/test.csv, kaggle/gender_submission.csv)",
     keyOutput: "submissions/submission_best_classical.csv",
     colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb"
   },
@@ -11,7 +11,7 @@ export const notebookGuide = [
     id: "01_Titanic_TFDF_Advanced_Model.ipynb",
     title: "01: Titanic TF-DF Advanced Model",
     purpose: "Advanced machine learning showcase utilizing Google Colab-only TensorFlow Decision Forests (Gradient Boosted Trees Model, RandomSearch hyperparameter tuning).",
-    dataset: "Kaggle Dataset (titanic/train.csv, titanic/test.csv)",
+    dataset: "Kaggle Dataset (kaggle/train.csv, kaggle/test.csv)",
     keyOutput: "submissions/submission_tfdf_tuned.csv",
     colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb"
   },

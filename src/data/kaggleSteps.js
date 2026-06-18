@@ -17,7 +17,7 @@ export const kaggleSteps = [
     subtitle: 'Verify file shapes and columns',
     explanation: 'We programmatically load local Kaggle CSV files (train.csv, test.csv, gender_submission.csv) and run structural checks to verify column alignments.',
     whyItMatters: 'Verifying schemas early prevents parsing errors during feature processing.',
-    codeSnippet: 'train = pd.read_csv("../titanic/train.csv")\ntest = pd.read_csv("../titanic/test.csv")\nassert "Survived" in train.columns',
+    codeSnippet: 'train = pd.read_csv("../kaggle/train.csv")\ntest = pd.read_csv("../kaggle/test.csv")\nassert "Survived" in train.columns',
     outputSummary: 'Loaded train.csv (891 rows) and test.csv (418 rows). Shapes are validated.',
     keyInsight: 'train.csv contains the Survived label; test.csv does not.'
   },

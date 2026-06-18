@@ -91,12 +91,12 @@ def create_kaggle_main_notebook():
             make_code_cell(r"""
                 # Search path fallback strategy (for local development vs. Google Colab)
                 possible_paths = [
-                    "../titanic/",
-                    "./titanic/",
+                    "../kaggle/",
+                    "./kaggle/",
                     "../data/",
                     "./data/",
                     "/content/",
-                    "/content/titanic/"
+                    "/content/kaggle/"
                 ]
 
                 train, test = None, None
@@ -123,7 +123,7 @@ def create_kaggle_main_notebook():
                         # Create dummy test set
                         test = train.sample(100, random_state=42).drop(columns=['Survived'])
                     except Exception as e:
-                        raise FileNotFoundError(f"Failed to load dataset: {e}. Please ensure train.csv and test.csv are in the titanic/ directory.")
+                        raise FileNotFoundError(f"Failed to load dataset: {e}. Please ensure train.csv and test.csv are in the kaggle/ directory.")
 
                 # Ingestion checks
                 print("Train shape:", train.shape)
@@ -585,7 +585,7 @@ def create_tfdf_notebook():
             """),
             
             make_code_cell(r"""
-                possible_paths = ["../titanic/", "./titanic/", "../data/", "./data/", "/content/"]
+                possible_paths = ["../kaggle/", "./kaggle/", "../data/", "./data/", "/content/"]
                 train_df, test_df = None, None
 
                 for bp in possible_paths:

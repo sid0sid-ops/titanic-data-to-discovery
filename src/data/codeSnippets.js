@@ -1,7 +1,7 @@
 export const codeSnippets = {
   loadKaggle: `import pandas as pd
-train = pd.read_csv('../titanic/train.csv')
-test = pd.read_csv('../titanic/test.csv')
+train = pd.read_csv('../kaggle/train.csv')
+test = pd.read_csv('../kaggle/test.csv')
 print("Train shape:", train.shape)
 print("Test shape:", test.shape)`,
   featureEngineer: `df['FamilySize'] = df['SibSp'] + df['Parch'] + 1
