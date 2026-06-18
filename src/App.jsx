@@ -191,18 +191,18 @@ export default function App() {
       if (activeKaggleSubTab === 'main') {
         return {
           github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
-          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb'
+          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb'
         };
       } else {
         return {
           github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb',
-          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb'
+          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb'
         };
       }
     } else {
       return {
         github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb',
-        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb'
+        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb'
       };
     }
   }, [activeWorkflow, activeKaggleSubTab]);
