@@ -25,7 +25,7 @@ This directory contains the Google Colab-ready notebooks for the Titanic Data Sc
 ## Reference Notebooks
 
 ### 3. OpenML Reference Workflow
-* **File:** [Titanic_Data_to_Discovery.ipynb](file:///Users/sid_mac/Documents/GitHub/titanic-data-to-discovery/notebooks/Titanic_Data_to_Discovery.ipynb)
+* **File:** [02_Titanic_OpenML_Reference_Workflow.ipynb](file:///Users/sid_mac/Documents/GitHub/titanic-data-to-discovery/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb)
 * **Purpose:** The original 1,309-row combined historical dataset model. Safe preprocessing and Logistic Regression serve as the foundational learning guide.
 
 ---
