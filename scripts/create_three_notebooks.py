@@ -58,7 +58,7 @@ def create_kaggle_main_notebook():
                 In this step, we install any necessary dependencies and import key data science packages: `pandas` and `numpy` for data manipulation, `matplotlib` and `seaborn` for static visualizations, `plotly` for interactive dashboards, and `sklearn` for predictive modeling.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 import os
                 import re
                 import numpy as np
@@ -88,7 +88,7 @@ def create_kaggle_main_notebook():
                 We load the Kaggle Titanic datasets (`train.csv` and `test.csv`) from possible local directories or fallbacks. We then perform a shape audit and run our first task: counting survivors vs. non-survivors in the training set.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Search path fallback strategy (for local development vs. Google Colab)
                 possible_paths = [
                     "../titanic/",
@@ -149,7 +149,7 @@ def create_kaggle_main_notebook():
                 2. Plot interactive multi-dimensional visualizations using Plotly.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # 1. Static Seaborn Plots
                 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -179,7 +179,7 @@ def create_kaggle_main_notebook():
                 plt.show()
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # 2. Interactive Plotly Visualizations
                 # Prepare a clean visualization DataFrame
                 vis_df = train.copy()
@@ -223,7 +223,7 @@ def create_kaggle_main_notebook():
                 4. Task: Perform assertions checking for remaining nulls in the key feature set.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Create clean copies
                 train_clean = train.copy()
                 test_clean = test.copy()
@@ -287,7 +287,7 @@ def create_kaggle_main_notebook():
                 3. Task: Interpret the model's coefficients (odds ratios) and explain which features matter most for survival.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Select features and labels
                 features = ["Pclass", "Sex_Male", "Age", "SibSp", "Parch", "Fare", "Embarked_Code"]
                 X = train_clean[features]
@@ -311,7 +311,7 @@ def create_kaggle_main_notebook():
                 print(f"Decision Tree Train Accuracy:       {dt_model.score(X_train, y_train):.4f}")
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # 3. Task: Interpret coefficients of the Logistic Regression model
                 coef_df = pd.DataFrame({
                     "Feature": features,
@@ -351,7 +351,7 @@ def create_kaggle_main_notebook():
                 4. Task: Discuss what the confusion matrix represents.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Generate predictions
                 lr_val_preds = lr_model.predict(X_val)
                 lr_val_probs = lr_model.predict_proba(X_val)[:, 1]
@@ -371,7 +371,7 @@ def create_kaggle_main_notebook():
                 display(comparison_df[["Name", "Sex", "Pclass", "Age", "Actual_Status", "Predicted_Status"]])
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # 2. Evaluate model performance and display confusion matrix
                 acc = accuracy_score(y_val, lr_val_preds)
                 prec = precision_score(y_val, lr_val_preds)
@@ -430,7 +430,7 @@ def create_kaggle_main_notebook():
                 Sharing data science insights involves looking beyond model numbers to tell a human story. We examine the structural, policy, and technological aspects that drove survival rates, and discuss how safety could have been improved.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Let's visualize the core survival split for final communication
                 fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -504,7 +504,7 @@ def create_kaggle_main_notebook():
                 Lastly, we train our best Logistic Regression model on the *complete* Kaggle training set (to maximize data exposure) and generate the prediction format expected by Kaggle.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Fit the model on the full training set
                 final_model = LogisticRegression(max_iter=1000, random_state=42)
                 final_model.fit(X, y)
@@ -560,7 +560,7 @@ def create_tfdf_notebook():
                 In this step, we install `tensorflow_decision_forests` (TF-DF) in our Google Colab workspace, import TensorFlow, Pandas, and other utility libraries.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Install TF-DF inside Colab environment if not already present
                 import sys
                 try:
@@ -584,7 +584,7 @@ def create_tfdf_notebook():
                 We load the training and test CSV files. Decision Forest algorithms do not require manual scaling or one-hot encoding, as they naturally handle categorical features!
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 possible_paths = ["../titanic/", "./titanic/", "../data/", "./data/", "/content/"]
                 train_df, test_df = None, None
 
@@ -614,7 +614,7 @@ def create_tfdf_notebook():
                 We engineer advanced structural features by normalising passenger names, extracting titles, and splitting tickets into items and numeric components.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 def advanced_prep(df):
                     df = df.copy()
                     
@@ -663,7 +663,7 @@ def create_tfdf_notebook():
                 We convert the Pandas dataframes to TensorFlow datasets. Then, we construct and train a Gradient Boosted Trees model. We print the structural summary of our trained trees.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Features to feed
                 features = ["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Cabin", "Embarked", 
                             "Ticket_number", "Ticket_item", "Title", "FamilySize"]
@@ -701,7 +701,7 @@ def create_tfdf_notebook():
                 We evaluate the self-reported out-of-bag validation accuracy or training logs, and export predictions to the final submission format.
             """),
             
-            make_code_cell("""
+            make_code_cell(r"""
                 # Predict survival probabilities
                 test_preds = model.predict(test_ds)
                 
