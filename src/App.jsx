@@ -201,8 +201,8 @@ export default function App() {
       }
     } else {
       return {
-        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/Titanic_Data_to_Discovery.ipynb',
-        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/Titanic_Data_to_Discovery.ipynb'
+        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb',
+        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb'
       };
     }
   }, [activeWorkflow, activeKaggleSubTab]);
@@ -294,10 +294,6 @@ export default function App() {
           <div className="navbar-logo">
             <span>Titanic Companion</span>
           </div>
-
-          {/* Place Pill Dataset Tabs inside the Navbar (Centered) */}
-          <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
-
           <div className="navbar-actions">
             <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
               <i className="fa-solid fa-play"></i>
@@ -311,8 +307,13 @@ export default function App() {
         </div>
       </nav>
 
+      {/* Dataset Tabs Switcher Centered ABOVE the Layout / Notebook Pipeline */}
+      <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '30px 24px 0 24px', display: 'flex', justifyContent: 'center' }}>
+        <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
+      </div>
+
       {/* Main Layout Container */}
-      <div className="layout-container">
+      <div className="layout-container" style={{ paddingTop: '10px' }}>
         
         {/* Sticky Table of Contents Sidebar */}
         <aside className="sidebar-sticky">
@@ -644,7 +645,7 @@ export default function App() {
                 <span className="hero-tag">Jupyter Companion • OpenML Dataset</span>
                 <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
                 <p className="hero-description">
-                  This webpage serves as an educational companion to the project's OpenML Jupyter Notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>Titanic_Data_to_Discovery.ipynb</code>). It systematically details how the data cleaning, exploratory plotting, and Scikit-Learn machine learning pipelines are constructed.
+                  This webpage serves as an educational companion to the project's OpenML Jupyter Notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>02_Titanic_OpenML_Reference_Workflow.ipynb</code>). It systematically details how the data cleaning, exploratory plotting, and Scikit-Learn machine learning pipelines are constructed.
                 </p>
                 <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                   <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
