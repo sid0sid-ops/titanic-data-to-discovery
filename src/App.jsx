@@ -6,22 +6,27 @@ import { tfdfSteps } from './data/tfdfSteps.js';
 import PillWorkflowTabs from './components/PillWorkflowTabs.jsx';
 
 export default function App() {
-  // Pill tab selection: 'kaggle' | 'tfdf' | 'openml'
+  // Pill tab selection for Dataset: 'kaggle' | 'openml'
   const [activeWorkflow, setActiveWorkflow] = useState('kaggle');
+
+  // Sub-tab selection inside Kaggle Dataset: 'main' | 'tfdf'
+  const [activeKaggleSubTab, setActiveKaggleSubTab] = useState('main');
 
   // Active section for sidebar navigation tracking
   const [activeSection, setActiveSection] = useState('intro');
 
-  // IntersectionObserver section tracking IDs
+  // IntersectionObserver section tracking IDs based on active workflow/sub-workflow
   const sectionIds = useMemo(() => {
     if (activeWorkflow === 'kaggle') {
-      return ['intro', 'loading', 'questions', 'interactive-eda', 'plots-gallery', 'feature-engineering', 'classical-models', 'evaluation', 'model-comparison', 'submission'];
-    } else if (activeWorkflow === 'tfdf') {
-      return ['setup', 'features', 'datasets', 'training', 'tuning'];
+      if (activeKaggleSubTab === 'main') {
+        return ['intro', 'loading', 'questions', 'interactive-eda', 'plots-gallery', 'feature-engineering', 'classical-models', 'evaluation', 'model-comparison', 'submission'];
+      } else {
+        return ['setup', 'features', 'datasets', 'training', 'tuning'];
+      }
     } else {
       return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'relevance', 'mindset', 'reflection', 'predictor'];
     }
-  }, [activeWorkflow]);
+  }, [activeWorkflow, activeKaggleSubTab]);
 
   // Sidebar list configurations
   const kaggleSidebarItems = [
@@ -67,10 +72,11 @@ export default function App() {
   ];
 
   const activeSidebarItems = useMemo(() => {
-    if (activeWorkflow === 'kaggle') return kaggleSidebarItems;
-    if (activeWorkflow === 'tfdf') return tfdfSidebarItems;
+    if (activeWorkflow === 'kaggle') {
+      return activeKaggleSubTab === 'main' ? kaggleSidebarItems : tfdfSidebarItems;
+    }
     return openmlSidebarItems;
-  }, [activeWorkflow]);
+  }, [activeWorkflow, activeKaggleSubTab]);
 
   // Interactive Plot Viewer State for OpenML (Step 5)
   const [activePlotTab, setActivePlotTab] = useState('survival_count');
@@ -136,15 +142,17 @@ export default function App() {
   // Reset active section on tab change
   useEffect(() => {
     if (activeWorkflow === 'kaggle') {
-      setActiveSection('intro');
-    } else if (activeWorkflow === 'tfdf') {
-      setActiveSection('setup');
+      if (activeKaggleSubTab === 'main') {
+        setActiveSection('intro');
+      } else {
+        setActiveSection('setup');
+      }
     } else {
       setActiveSection('intro');
     }
     // Scroll page to top when changing workflow tabs
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [activeWorkflow]);
+  }, [activeWorkflow, activeKaggleSubTab]);
 
   // IntersectionObserver scroll tracker
   useEffect(() => {
@@ -177,25 +185,27 @@ export default function App() {
     };
   }, [sectionIds]);
 
-  // Compute dynamic links based on active workflow
+  // Compute dynamic links based on active workflow and sub-tab selection
   const activeLinks = useMemo(() => {
     if (activeWorkflow === 'kaggle') {
-      return {
-        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
-        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb'
-      };
-    } else if (activeWorkflow === 'tfdf') {
-      return {
-        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb',
-        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb'
-      };
+      if (activeKaggleSubTab === 'main') {
+        return {
+          github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
+          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb'
+        };
+      } else {
+        return {
+          github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb',
+          colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb'
+        };
+      }
     } else {
       return {
-        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb',
-        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb'
+        github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/Titanic_Data_to_Discovery.ipynb',
+        colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/Titanic_Data_to_Discovery.ipynb'
       };
     }
-  }, [activeWorkflow]);
+  }, [activeWorkflow, activeKaggleSubTab]);
 
   // Compute live prediction in JS
   const liveResult = useMemo(() => {
@@ -282,8 +292,12 @@ export default function App() {
       <nav className="navbar">
         <div className="navbar-container">
           <div className="navbar-logo">
-            <span>Titanic Companion Guide</span>
+            <span>Titanic Companion</span>
           </div>
+
+          {/* Place Pill Dataset Tabs inside the Navbar (Centered) */}
+          <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
+
           <div className="navbar-actions">
             <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
               <i className="fa-solid fa-play"></i>
@@ -297,13 +311,8 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Pill Workflow Switcher Wrapper */}
-      <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '30px 24px 0 24px' }}>
-        <PillWorkflowTabs activeTab={activeWorkflow} setActiveTab={setActiveWorkflow} />
-      </div>
-
       {/* Main Layout Container */}
-      <div className="layout-container" style={{ paddingTop: '10px' }}>
+      <div className="layout-container">
         
         {/* Sticky Table of Contents Sidebar */}
         <aside className="sidebar-sticky">
@@ -330,280 +339,303 @@ export default function App() {
         <main className="main-content">
           
           {/* ========================================================================= */}
-          {/* 1. KAGGLE DATASET WORKFLOW                                                 */}
+          {/* 1. KAGGLE DATASET WORKFLOW (Includes TF-DF Model internally)               */}
           {/* ========================================================================= */}
           {activeWorkflow === 'kaggle' && (
             <div>
-              {/* Hero Banner Section */}
-              <section id="intro" className="hero">
-                <span className="hero-tag">Jupyter Companion • Kaggle Dataset</span>
-                <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
-                <p className="hero-description">
-                  This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It details data auditing, feature preprocessing, and model evaluations on the standard Kaggle training dataset.
-                </p>
-                <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
-                  <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
-                    <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
-                  </a>
+              {/* Secondary Sub-tabs Toggle for Kaggle Dataset */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+                <div className="pill-tabs-container" style={{ display: 'flex', gap: '4px' }}>
+                  <button 
+                    onClick={() => setActiveKaggleSubTab('main')} 
+                    className={`pill-tab-btn ${activeKaggleSubTab === 'main' ? 'active' : ''}`}
+                    style={{ fontSize: '13px', padding: '6px 16px' }}
+                  >
+                    <i className="fa-solid fa-gears" style={{ marginRight: '6px' }}></i>
+                    Classical ML Workflow
+                  </button>
+                  <button 
+                    onClick={() => setActiveKaggleSubTab('tfdf')} 
+                    className={`pill-tab-btn ${activeKaggleSubTab === 'tfdf' ? 'active' : ''}`}
+                    style={{ fontSize: '13px', padding: '6px 16px' }}
+                  >
+                    <i className="fa-solid fa-tree" style={{ marginRight: '6px' }}></i>
+                    Advanced TF-DF Model
+                  </button>
                 </div>
-                
-                <div className="hero-stats">
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">891</span>
-                    <span className="hero-stat-lbl">Train Rows (Local)</span>
-                  </div>
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">81.56%</span>
-                    <span className="hero-stat-lbl">Validation Accuracy</span>
-                  </div>
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">10</span>
-                    <span className="hero-stat-lbl">Engineered Features</span>
-                  </div>
-                </div>
-              </section>
+              </div>
 
-              {/* Render Kaggle Steps dynamically */}
-              {kaggleSteps.map((step) => {
-                // Skip the intro step card since it is represented by the Hero banner
-                if (step.id === 'intro') return null;
-
-                return (
-                  <section key={step.id} id={step.id} className="step-card">
-                    <div className="step-header">
-                      <span className="step-number-tag">Step {step.stepNumber}</span>
-                      <span className="step-title">{step.title}</span>
-                    </div>
-                    <p className="step-subtitle" style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: 600, margin: '-10px 0 16px 0' }}>
-                      {step.subtitle}
+              {/* RENDER KAGGLE CLASSICAL ML WORKFLOW */}
+              {activeKaggleSubTab === 'main' && (
+                <div>
+                  {/* Hero Banner Section */}
+                  <section id="intro" className="hero">
+                    <span className="hero-tag">Jupyter Companion • Kaggle Dataset</span>
+                    <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
+                    <p className="hero-description">
+                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It details data auditing, feature preprocessing, and model evaluations on the standard Kaggle training dataset.
                     </p>
-                    <p className="step-explanation">{step.explanation}</p>
+                    <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
+                      <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
+                        <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
+                      </a>
+                    </div>
                     
-                    {step.whyItMatters && (
-                      <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#eff6ff', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px' }}>
-                        <strong>Why It Matters:</strong> {step.whyItMatters}
+                    <div className="hero-stats">
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">891</span>
+                        <span className="hero-stat-lbl">Train Rows (Local)</span>
                       </div>
-                    )}
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">81.56%</span>
+                        <span className="hero-stat-lbl">Validation Accuracy</span>
+                      </div>
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">10</span>
+                        <span className="hero-stat-lbl">Engineered Features</span>
+                      </div>
+                    </div>
+                  </section>
 
-                    {step.codeSnippet && (
-                      <div className="notebook-cell" style={{ margin: '20px 0' }}>
-                        <div className="cell-header"><span>In [{step.stepNumber}]:</span><span>Python Pipeline Code</span></div>
-                        <pre className="cell-code" style={{ whiteSpace: 'pre-wrap' }}><code>{step.codeSnippet}</code></pre>
-                        {step.outputSummary && (
-                          <div className="cell-output" style={{ fontSize: '13px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '10px' }}>
-                            <strong>Output summary:</strong> {step.outputSummary}
+                  {/* Render Kaggle Steps dynamically */}
+                  {kaggleSteps.map((step) => {
+                    if (step.id === 'intro') return null;
+
+                    return (
+                      <section key={step.id} id={step.id} className="step-card">
+                        <div className="step-header">
+                          <span className="step-number-tag">Step {step.stepNumber}</span>
+                          <span className="step-title">{step.title}</span>
+                        </div>
+                        <p className="step-subtitle" style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: 600, margin: '-10px 0 16px 0' }}>
+                          {step.subtitle}
+                        </p>
+                        <p className="step-explanation">{step.explanation}</p>
+                        
+                        {step.whyItMatters && (
+                          <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#eff6ff', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px' }}>
+                            <strong>Why It Matters:</strong> {step.whyItMatters}
                           </div>
                         )}
-                      </div>
-                    )}
 
-                    {step.keyInsight && (
-                      <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '4px' }}>
-                        <strong>Key Insight:</strong> {step.keyInsight}
-                      </div>
-                    )}
-
-                    {/* Special Render: Kaggle Visual Plot Gallery (Step 5) */}
-                    {step.isGallery && (
-                      <div className="plot-viewer-card" style={{ marginTop: '30px' }}>
-                        <div className="plot-tabs-wrapper">
-                          <button 
-                            className="plot-scroll-btn left" 
-                            onClick={() => scrollPlotTabs(kagglePlotTabsRef, 'left')}
-                            title="Scroll Left"
-                          >
-                            <i className="fa-solid fa-chevron-left"></i>
-                          </button>
-                          
-                          <div className="plot-tabs" ref={kagglePlotTabsRef}>
-                            {kagglePlots.map(p => (
-                              <button
-                                key={p.id}
-                                onClick={() => setActiveKagglePlot(p.id)}
-                                className={`plot-tab-btn ${activeKagglePlot === p.id ? 'active' : ''}`}
-                              >
-                                {p.name}
-                              </button>
-                            ))}
+                        {step.codeSnippet && (
+                          <div className="notebook-cell" style={{ margin: '20px 0' }}>
+                            <div className="cell-header"><span>In [{step.stepNumber}]:</span><span>Python Pipeline Code</span></div>
+                            <pre className="cell-code" style={{ whiteSpace: 'pre-wrap' }}><code>{step.codeSnippet}</code></pre>
+                            {step.outputSummary && (
+                              <div className="cell-output" style={{ fontSize: '13px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '10px' }}>
+                                <strong>Output summary:</strong> {step.outputSummary}
+                              </div>
+                            )}
                           </div>
+                        )}
 
-                          <button 
-                            className="plot-scroll-btn right" 
-                            onClick={() => scrollPlotTabs(kagglePlotTabsRef, 'right')}
-                            title="Scroll Right"
-                          >
-                            <i className="fa-solid fa-chevron-right"></i>
-                          </button>
-                        </div>
-                        <div className="plot-content" style={{ padding: '20px', backgroundColor: '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '12px' }}>
-                          <div style={{ textAlign: 'center' }}>
-                            <img
-                              src={`${import.meta.env.BASE_URL}assets/plots/${activeKPlot.file}`}
-                              alt={activeKPlot.name}
-                              style={{ maxWidth: '100%', height: 'auto', maxHeight: '380px', objectFit: 'contain', borderRadius: '4px' }}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                            <div style={{ display: 'none', flexDirection: 'column', alignItems: 'center', color: 'var(--text-muted)', padding: '20px' }}>
-                              <i className="fa-solid fa-chart-line" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
-                              <span>Static Plot missing. Run generate_kaggle_visuals.py first.</span>
+                        {step.keyInsight && (
+                          <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '4px' }}>
+                            <strong>Key Insight:</strong> {step.keyInsight}
+                          </div>
+                        )}
+
+                        {/* Special Render: Kaggle Visual Plot Gallery (Step 5) */}
+                        {step.isGallery && (
+                          <div className="plot-viewer-card" style={{ marginTop: '30px' }}>
+                            <div className="plot-tabs-wrapper">
+                              <button 
+                                className="plot-scroll-btn left" 
+                                onClick={() => scrollPlotTabs(kagglePlotTabsRef, 'left')}
+                                title="Scroll Left"
+                              >
+                                <i className="fa-solid fa-chevron-left"></i>
+                              </button>
+                              
+                              <div className="plot-tabs" ref={kagglePlotTabsRef}>
+                                {kagglePlots.map(p => (
+                                  <button
+                                    key={p.id}
+                                    onClick={() => setActiveKagglePlot(p.id)}
+                                    className={`plot-tab-btn ${activeKagglePlot === p.id ? 'active' : ''}`}
+                                  >
+                                    {p.name}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <button 
+                                className="plot-scroll-btn right" 
+                                onClick={() => scrollPlotTabs(kagglePlotTabsRef, 'right')}
+                                title="Scroll Right"
+                              >
+                                <i className="fa-solid fa-chevron-right"></i>
+                              </button>
+                            </div>
+                            <div className="plot-content" style={{ padding: '20px', backgroundColor: '#ffffff', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '12px' }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <img
+                                  src={`${import.meta.env.BASE_URL}assets/plots/${activeKPlot.file}`}
+                                  alt={activeKPlot.name}
+                                  style={{ maxWidth: '100%', height: 'auto', maxHeight: '380px', objectFit: 'contain', borderRadius: '4px' }}
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                                <div style={{ display: 'none', flexDirection: 'column', alignItems: 'center', color: 'var(--text-muted)', padding: '20px' }}>
+                                  <i className="fa-solid fa-chart-line" style={{ fontSize: '48px', marginBottom: '10px' }}></i>
+                                  <span>Static Plot missing. Run generate_kaggle_visuals.py first.</span>
+                                </div>
+                              </div>
+                              <p className="plot-caption" style={{ marginTop: '12px', fontSize: '14.5px', color: 'var(--text-secondary)' }}>
+                                <strong>{activeKPlot.name}:</strong> {activeKPlot.desc}
+                              </p>
                             </div>
                           </div>
-                          <p className="plot-caption" style={{ marginTop: '12px', fontSize: '14.5px', color: 'var(--text-secondary)' }}>
-                            <strong>{activeKPlot.name}:</strong> {activeKPlot.desc}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                        )}
 
-                    {/* Special Render: Kaggle Model Comparison Table (Step 9) */}
-                    {step.isComparisonTable && (
-                      <div className="comparison-table-wrap" style={{ marginTop: '30px' }}>
-                        {compError ? (
-                          <div style={{ padding: '10px', backgroundColor: '#fee2e2', color: '#b91c1c', fontSize: '13px', borderRadius: '4px', marginBottom: '10px' }}>
-                            ⚠️ Loading live metrics failed. Displaying static baselines.
-                          </div>
-                        ) : null}
-                        <table className="comparison-table">
-                          <thead>
-                            <tr>
-                              <th>Model</th>
-                              <th>Accuracy</th>
-                              <th>Precision</th>
-                              <th>Recall</th>
-                              <th>F1 Score</th>
-                              <th>ROC-AUC</th>
-                              <th>Notes</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {modelComparisons.length > 0 ? (
-                              modelComparisons.map((item, idx) => (
-                                <tr key={idx}>
-                                  <td><strong>{item.Model || item.model}</strong></td>
-                                  <td>{(item.Accuracy || item.accuracy || 0).toFixed(4)}</td>
-                                  <td>{(item.Precision || item.precision || 0).toFixed(4)}</td>
-                                  <td>{(item.Recall || item.recall || 0).toFixed(4)}</td>
-                                  <td>{(item.F1 || item.f1 || 0).toFixed(4)}</td>
-                                  <td>{(item["ROC-AUC"] || item.roc_auc || 0).toFixed(4)}</td>
-                                  <td>{item.Notes || item.notes}</td>
-                                </tr>
-                              ))
-                            ) : (
-                              <>
+                        {/* Special Render: Kaggle Model Comparison Table (Step 9) */}
+                        {step.isComparisonTable && (
+                          <div className="comparison-table-wrap" style={{ marginTop: '30px' }}>
+                            {compError ? (
+                              <div style={{ padding: '10px', backgroundColor: '#fee2e2', color: '#b91c1c', fontSize: '13px', borderRadius: '4px', marginBottom: '10px' }}>
+                                ⚠️ Loading live metrics failed. Displaying static baselines.
+                              </div>
+                            ) : null}
+                            <table className="comparison-table">
+                              <thead>
                                 <tr>
-                                  <td><strong>Gender Baseline</strong></td>
-                                  <td>0.7765</td>
-                                  <td>0.7377</td>
-                                  <td>0.6522</td>
-                                  <td>0.6923</td>
-                                  <td>0.7534</td>
-                                  <td>Baseline predicting all females survive and all males die.</td>
+                                  <th>Model</th>
+                                  <th>Accuracy</th>
+                                  <th>Precision</th>
+                                  <th>Recall</th>
+                                  <th>F1 Score</th>
+                                  <th>ROC-AUC</th>
+                                  <th>Notes</th>
                                 </tr>
-                                <tr>
-                                  <td><strong>Logistic Regression</strong></td>
-                                  <td>0.8156</td>
-                                  <td>0.7903</td>
-                                  <td>0.7101</td>
-                                  <td>0.7481</td>
-                                  <td>0.8659</td>
-                                  <td>CV score on train: 0.8301.</td>
-                                </tr>
-                              </>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* 2. TF-DF ADVANCED MODEL WORKFLOW                                           */}
-          {/* ========================================================================= */}
-          {activeWorkflow === 'tfdf' && (
-            <div>
-              {/* Hero Banner Section */}
-              <section id="setup" className="hero">
-                <span className="hero-tag">Jupyter Companion • TensorFlow Decision Forests</span>
-                <h1>Advanced Modeling with TensorFlow Decision Forests (TF-DF)</h1>
-                <p className="hero-description">
-                  This companion details the setup and engineering choices of our advanced model (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>01_Titanic_TFDF_Advanced_Model.ipynb</code>). We utilize neural gradient boosted trees and auto-tuned structural variables.
-                </p>
-                <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
-                  <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
-                    <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
-                  </a>
-                </div>
-                
-                <div className="hero-stats">
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">891</span>
-                    <span className="hero-stat-lbl">Train Rows</span>
-                  </div>
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">81.33%</span>
-                    <span className="hero-stat-lbl">Out-of-Bag Accuracy</span>
-                  </div>
-                  <div className="hero-stat-card">
-                    <span className="hero-stat-val">Auto</span>
-                    <span className="hero-stat-lbl">Decision Tree Splits</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* Render TF-DF Steps dynamically */}
-              {tfdfSteps.map((step) => {
-                // Skip setup step card details because it is already summarized by the Hero banner
-                if (step.id === 'setup') return null;
-
-                return (
-                  <section key={step.id} id={step.id} className="step-card">
-                    <div className="step-header">
-                      <span className="step-number-tag">Step {step.stepNumber}</span>
-                      <span className="step-title">{step.title}</span>
-                    </div>
-                    <p className="step-subtitle" style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: 600, margin: '-10px 0 16px 0' }}>
-                      {step.subtitle}
-                    </p>
-                    <p className="step-explanation">{step.explanation}</p>
-                    
-                    {step.whyItMatters && (
-                      <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#eff6ff', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px' }}>
-                        <strong>Why It Matters:</strong> {step.whyItMatters}
-                      </div>
-                    )}
-
-                    {step.codeSnippet && (
-                      <div className="notebook-cell" style={{ margin: '20px 0' }}>
-                        <div className="cell-header"><span>In [{step.stepNumber}]:</span><span>TF-DF Model Code</span></div>
-                        <pre className="cell-code" style={{ whiteSpace: 'pre-wrap' }}><code>{step.codeSnippet}</code></pre>
-                        {step.outputSummary && (
-                          <div className="cell-output" style={{ fontSize: '13px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '10px' }}>
-                            <strong>Output summary:</strong> {step.outputSummary}
+                              </thead>
+                              <tbody>
+                                {modelComparisons.length > 0 ? (
+                                  modelComparisons.map((item, idx) => (
+                                    <tr key={idx}>
+                                      <td><strong>{item.Model || item.model}</strong></td>
+                                      <td>{(item.Accuracy || item.accuracy || 0).toFixed(4)}</td>
+                                      <td>{(item.Precision || item.precision || 0).toFixed(4)}</td>
+                                      <td>{(item.Recall || item.recall || 0).toFixed(4)}</td>
+                                      <td>{(item.F1 || item.f1 || 0).toFixed(4)}</td>
+                                      <td>{(item["ROC-AUC"] || item.roc_auc || 0).toFixed(4)}</td>
+                                      <td>{item.Notes || item.notes}</td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <>
+                                    <tr>
+                                      <td><strong>Gender Baseline</strong></td>
+                                      <td>0.7765</td>
+                                      <td>0.7377</td>
+                                      <td>0.6522</td>
+                                      <td>0.6923</td>
+                                      <td>0.7534</td>
+                                      <td>Baseline predicting all females survive and all males die.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>Logistic Regression</strong></td>
+                                      <td>0.8156</td>
+                                      <td>0.7903</td>
+                                      <td>0.7101</td>
+                                      <td>0.7481</td>
+                                      <td>0.8659</td>
+                                      <td>CV score on train: 0.8301.</td>
+                                    </tr>
+                                  </>
+                                )}
+                              </tbody>
+                            </table>
                           </div>
                         )}
-                      </div>
-                    )}
+                      </section>
+                    );
+                  })}
+                </div>
+              )}
 
-                    {step.keyInsight && (
-                      <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '4px' }}>
-                        <strong>Key Insight:</strong> {step.keyInsight}
+              {/* RENDER KAGGLE TF-DF ADVANCED MODEL */}
+              {activeKaggleSubTab === 'tfdf' && (
+                <div>
+                  {/* Hero Banner Section */}
+                  <section id="setup" className="hero">
+                    <span className="hero-tag">Jupyter Companion • TensorFlow Decision Forests</span>
+                    <h1>Advanced Modeling with TensorFlow Decision Forests (TF-DF)</h1>
+                    <p className="hero-description">
+                      This companion details the setup and engineering choices of our advanced model (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>01_Titanic_TFDF_Advanced_Model.ipynb</code>). We utilize neural gradient boosted trees and auto-tuned structural variables.
+                    </p>
+                    <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
+                      <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
+                        <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
+                      </a>
+                    </div>
+                    
+                    <div className="hero-stats">
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">891</span>
+                        <span className="hero-stat-lbl">Train Rows</span>
                       </div>
-                    )}
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">81.33%</span>
+                        <span className="hero-stat-lbl">Out-of-Bag Accuracy</span>
+                      </div>
+                      <div className="hero-stat-card">
+                        <span className="hero-stat-val">Auto</span>
+                        <span className="hero-stat-lbl">Decision Tree Splits</span>
+                      </div>
+                    </div>
                   </section>
-                );
-              })}
+
+                  {/* Render TF-DF Steps dynamically */}
+                  {tfdfSteps.map((step) => {
+                    if (step.id === 'setup') return null;
+
+                    return (
+                      <section key={step.id} id={step.id} className="step-card">
+                        <div className="step-header">
+                          <span className="step-number-tag">Step {step.stepNumber}</span>
+                          <span className="step-title">{step.title}</span>
+                        </div>
+                        <p className="step-subtitle" style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: 600, margin: '-10px 0 16px 0' }}>
+                          {step.subtitle}
+                        </p>
+                        <p className="step-explanation">{step.explanation}</p>
+                        
+                        {step.whyItMatters && (
+                          <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#eff6ff', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px' }}>
+                            <strong>Why It Matters:</strong> {step.whyItMatters}
+                          </div>
+                        )}
+
+                        {step.codeSnippet && (
+                          <div className="notebook-cell" style={{ margin: '20px 0' }}>
+                            <div className="cell-header"><span>In [{step.stepNumber}]:</span><span>TF-DF Model Code</span></div>
+                            <pre className="cell-code" style={{ whiteSpace: 'pre-wrap' }}><code>{step.codeSnippet}</code></pre>
+                            {step.outputSummary && (
+                              <div className="cell-output" style={{ fontSize: '13px', borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '10px' }}>
+                                <strong>Output summary:</strong> {step.outputSummary}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {step.keyInsight && (
+                          <div className="insight-box" style={{ margin: '16px 0', padding: '14px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '4px' }}>
+                            <strong>Key Insight:</strong> {step.keyInsight}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
           {/* ========================================================================= */}
-          {/* 3. OPENML DATASET WORKFLOW (RESTORED EXACT STRUCTURE)                     */}
+          {/* 2. OPENML DATASET WORKFLOW (RESTORED EXACT STRUCTURE)                     */}
           {/* ========================================================================= */}
           {activeWorkflow === 'openml' && (
             <div>
@@ -612,7 +644,7 @@ export default function App() {
                 <span className="hero-tag">Jupyter Companion • OpenML Dataset</span>
                 <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
                 <p className="hero-description">
-                  This webpage serves as an educational companion to the project's OpenML Jupyter Notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>02_Titanic_OpenML_Reference_Workflow.ipynb</code>). It systematically details how the data cleaning, exploratory plotting, and Scikit-Learn machine learning pipelines are constructed.
+                  This webpage serves as an educational companion to the project's OpenML Jupyter Notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>Titanic_Data_to_Discovery.ipynb</code>). It systematically details how the data cleaning, exploratory plotting, and Scikit-Learn machine learning pipelines are constructed.
                 </p>
                 <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                   <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
