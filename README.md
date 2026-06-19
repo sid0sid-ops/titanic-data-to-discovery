@@ -166,3 +166,73 @@ Below is the verified model comparison table from the Google Colab execution:
 * **Best Class Separation:** **Random Forest** achieved the highest **ROC-AUC of 0.8486**, closely followed by Logistic Regression (`0.8458`) and YDF GBT (`0.8440`).
 * **Overfitting in Deep Learning:** The **TensorFlow Neural Net** achieved a high CV accuracy (`0.8947`), but its holdout validation accuracy fell to `0.8045`, indicating overfitting on the training data.
 * **Tabular Performance Advantage:** Tree-based ensemble structures generally outperform baseline linear algorithms or high-parameter neural layers on small tabular datasets with rich categorical attributes (such as passenger gender, class groups, ticket groups, and cabin decks).
+
+---
+
+## 8. Regenerate Website Graphs and Model Export
+
+Generate graph images:
+
+```bash
+python3 scripts/generate_titanic_figures.py
+```
+
+Generate the static model JSON used by the browser predictor:
+
+```bash
+python3 scripts/export_titanic_web_model.py
+```
+
+The graph script writes PNG files to `public/assets/plots/` and creates:
+
+```text
+public/assets/titanic_graphs.zip
+```
+
+---
+
+## 9. Deploy to GitHub Pages
+
+Before deploying, replace `sid0sid-ops` placeholders in:
+
+- `README.md`
+- `package.json`
+- `src/data/projectContent.js`
+- `docs/deployment.md`
+
+GitHub Actions deployment:
+
+1. Push the repository to GitHub.
+2. Open **Settings -> Pages**.
+3. Set **Build and deployment** source to **GitHub Actions**.
+4. Push to `main`.
+5. Wait for the deploy workflow to finish.
+
+Manual deployment with `gh-pages`:
+
+```bash
+npm run build
+npm run deploy
+```
+
+The live website will be:
+
+```text
+https://sid0sid-ops.github.io/titanic-data-to-discovery/
+```
+
+---
+
+## Acknowledgement
+
+This project was inspired by **Ashok Gopalakrishnan** during a lecture under the **IICT Summer Internship Program in AI & Machine Learning (2026)**. His discussion on using historical events as a foundation for data analysis encouraged me to explore the Titanic dataset as my first structured data science project.
+
+Through this work, I tried to connect history with Python-based data analysis, visualization, machine learning, and clear project communication. I also acknowledge the learning support of AI tools, which helped me structure, refine, and improve the project while understanding the workflow step by step.
+
+## Credits
+
+- OpenML Titanic dataset.
+- DataScienceDojo Titanic dataset.
+- Seaborn Titanic dataset.
+- Scikit-Learn documentation for Pipeline and ColumnTransformer.
+- Project blueprint: `docs/Titanic Data Science Blueprint.docx`.
