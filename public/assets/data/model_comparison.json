@@ -1,47 +1,101 @@
 [
   {
-    "Model": "Gender Baseline",
-    "Accuracy": 0.7765,
-    "Precision": 0.7377,
-    "Recall": 0.6522,
-    "F1": 0.6923,
-    "ROC-AUC": 0.7534,
-    "Notes": "Baseline predicting all females survive and all males die."
+    "Model": "YDF Random Forest",
+    "CV_Accuracy": 0.8638,
+    "Accuracy": 0.8212,
+    "Precision": 0.8136,
+    "Recall": 0.6957,
+    "F1": 0.7500,
+    "ROC-AUC": 0.8426,
+    "Best_Params": "OOB Estimate",
+    "Notes": "Google YDF implementation using out-of-bag validation metrics."
   },
   {
-    "Model": "Logistic Regression",
+    "Model": "YDF Gradient Boosted Trees",
+    "CV_Accuracy": 0.8537,
     "Accuracy": 0.8156,
-    "Precision": 0.7903,
-    "Recall": 0.7101,
-    "F1": 0.7481,
-    "ROC-AUC": 0.8659,
-    "Notes": "CV score on train: 0.8301."
-  },
-  {
-    "Model": "Decision Tree",
-    "Accuracy": 0.7821,
-    "Precision": 0.8,
-    "Recall": 0.5797,
-    "F1": 0.6723,
-    "ROC-AUC": 0.8397,
-    "Notes": "CV score on train: 0.8104."
+    "Precision": 0.8214,
+    "Recall": 0.6667,
+    "F1": 0.7360,
+    "ROC-AUC": 0.8440,
+    "Best_Params": "Tuned GBT Folds",
+    "Notes": "Google YDF boosting framework optimized via random search."
   },
   {
     "Model": "Random Forest",
-    "Accuracy": 0.7989,
-    "Precision": 0.8113,
-    "Recall": 0.6232,
-    "F1": 0.7049,
-    "ROC-AUC": 0.8481,
-    "Notes": "CV score on train: 0.8259."
+    "CV_Accuracy": 0.8470,
+    "Accuracy": 0.8156,
+    "Precision": 0.8000,
+    "Recall": 0.6957,
+    "F1": 0.7442,
+    "ROC-AUC": 0.8486,
+    "Best_Params": "max_depth=8, n_estimators=50",
+    "Notes": "Robust ensemble averaging out individual tree variance."
   },
   {
-    "Model": "Gradient Boosting",
-    "Accuracy": 0.8101,
-    "Precision": 0.7869,
+    "Model": "LightGBM",
+    "CV_Accuracy": 0.8512,
+    "Accuracy": 0.8045,
+    "Precision": 0.7931,
+    "Recall": 0.6667,
+    "F1": 0.7244,
+    "ROC-AUC": 0.8356,
+    "Best_Params": "learning_rate=0.05, max_depth=4",
+    "Notes": "Leaf-wise tree growth optimized gradient boosting classifier."
+  },
+  {
+    "Model": "Decision Tree",
+    "CV_Accuracy": 0.8385,
+    "Accuracy": 0.8045,
+    "Precision": 0.7833,
+    "Recall": 0.6812,
+    "F1": 0.7287,
+    "ROC-AUC": 0.7999,
+    "Best_Params": "max_depth=3",
+    "Notes": "Simple tree with high interpretability and quick execution."
+  },
+  {
+    "Model": "XGBoost",
+    "CV_Accuracy": 0.8442,
+    "Accuracy": 0.7989,
+    "Precision": 0.7619,
     "Recall": 0.6957,
-    "F1": 0.7385,
-    "ROC-AUC": 0.829,
-    "Notes": "CV score on train: 0.8287."
+    "F1": 0.7273,
+    "ROC-AUC": 0.8271,
+    "Best_Params": "learning_rate=0.1, max_depth=3",
+    "Notes": "Extreme gradient boosting utilizing regularized split controls."
+  },
+  {
+    "Model": "CatBoost",
+    "CV_Accuracy": 0.8400,
+    "Accuracy": 0.7933,
+    "Precision": 0.7667,
+    "Recall": 0.6667,
+    "F1": 0.7132,
+    "ROC-AUC": 0.8373,
+    "Best_Params": "depth=4, learning_rate=0.05",
+    "Notes": "Symmetric boosting with robust native categorical encoding."
+  },
+  {
+    "Model": "TensorFlow Neural Net",
+    "CV_Accuracy": 0.8947,
+    "Accuracy": 0.8045,
+    "Precision": 0.7656,
+    "Recall": 0.7101,
+    "F1": 0.7368,
+    "ROC-AUC": 0.8327,
+    "Best_Params": "Dense(64) -> Dropout(0.2) -> Dense(32) -> Dropout(0.2) -> Sigmoid",
+    "Notes": "Deep Learning MLP model compiled under TPU strategy scope."
+  },
+  {
+    "Model": "Logistic Regression",
+    "CV_Accuracy": 0.8428,
+    "Accuracy": 0.7765,
+    "Precision": 0.7302,
+    "Recall": 0.6667,
+    "F1": 0.6970,
+    "ROC-AUC": 0.8458,
+    "Best_Params": "C=0.1",
+    "Notes": "Baseline linear classifier with L2 regularization."
   }
 ]

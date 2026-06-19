@@ -22,7 +22,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-KAGGLE_DIR = PROJECT_ROOT / "titanic"
+KAGGLE_DIR = PROJECT_ROOT / "kaggle"
 PLOTS_DIR = PROJECT_ROOT / "public" / "assets" / "plots"
 DATA_DIR = PROJECT_ROOT / "public" / "assets" / "data"
 
@@ -111,16 +111,19 @@ def generate_visualizations(df):
 
     # 4. Survival rate by class
     plt.figure(figsize=(6, 4))
-    sns.barplot(data=df, x="pclass", y="survived", hue="pclass", palette=[COLORS["class_1"], COLORS["class_2"], COLORS["class_3"]], errorbar=None, legend=False)
+    df_temp = df.copy()
+    df_temp["pclass"] = df_temp["pclass"].map({1: "1st Class", 2: "2nd Class", 3: "3rd Class"})
+    sns.barplot(data=df_temp, x="pclass", y="survived", hue="pclass", palette=[COLORS["class_1"], COLORS["class_2"], COLORS["class_3"]], order=["1st Class", "2nd Class", "3rd Class"], errorbar=None, legend=False)
     plt.title("Survival Rate by Passenger Class")
     plt.xlabel("Passenger Class")
     plt.ylabel("Survival Rate")
-    plt.xticks([0, 1, 2], ["1st Class", "2nd Class", "3rd Class"])
     save_plot("survival_rate_by_class.png")
 
     # 5. Survival by sex & class heatmap
     plt.figure(figsize=(6, 4))
     pivot = df.pivot_table(index="sex", columns="pclass", values="survived", aggfunc="mean")
+    pivot.columns = ["1st Class", "2nd Class", "3rd Class"]
+    pivot.index = [idx.capitalize() for idx in pivot.index]
     sns.heatmap(pivot, annot=True, cmap="Blues", fmt=".2f", cbar_kws={'label': 'Survival Rate'}, vmin=0, vmax=1)
     plt.title("Survival Rate by Gender and Class")
     plt.xlabel("Passenger Class")
@@ -148,7 +151,9 @@ def generate_visualizations(df):
 
     # 8. Fare distribution
     plt.figure(figsize=(7, 4.5))
-    sns.histplot(data=df, x="fare", hue="survived", palette=[COLORS["not_survived"], COLORS["survived"]], kde=True, bins=30, alpha=0.5, multiple="stack")
+    df_temp = df.copy()
+    df_temp["Survival Status"] = df_temp["survived"].map({0: "Not Survived", 1: "Survived"})
+    sns.histplot(data=df_temp, x="fare", hue="Survival Status", palette={"Not Survived": COLORS["not_survived"], "Survived": COLORS["survived"]}, kde=True, bins=30, alpha=0.5, multiple="stack")
     plt.title("Fare Distribution by Survival")
     plt.xlabel("Fare ($)")
     plt.ylabel("Passenger Count")
@@ -156,21 +161,24 @@ def generate_visualizations(df):
 
     # 9. Fare outlier boxplot
     plt.figure(figsize=(6, 4))
-    sns.boxplot(data=df, x="survived", y="fare", hue="survived", palette=[COLORS["not_survived"], COLORS["survived"]], legend=False)
+    df_temp = df.copy()
+    df_temp["Survival Status"] = df_temp["survived"].map({0: "Not Survived", 1: "Survived"})
+    sns.boxplot(data=df_temp, x="Survival Status", y="fare", hue="Survival Status", palette={"Not Survived": COLORS["not_survived"], "Survived": COLORS["survived"]}, legend=False)
     plt.title("Fare Boxplot (Identifying Outliers)")
     plt.xlabel("Survival Status")
     plt.ylabel("Fare ($)")
-    plt.xticks([0, 1], ["Not Survived", "Survived"])
     save_plot("fare_outlier_boxplot.png")
 
     # 10. Age vs Fare scatter
     plt.figure(figsize=(8, 5))
-    sns.scatterplot(data=df, x="age", y="fare", hue="survived", palette=[COLORS["not_survived"], COLORS["survived"]], alpha=0.7)
+    df_temp = df.copy()
+    df_temp["Survival Status"] = df_temp["survived"].map({0: "Not Survived", 1: "Survived"})
+    sns.scatterplot(data=df_temp, x="age", y="fare", hue="Survival Status", palette={"Not Survived": COLORS["not_survived"], "Survived": COLORS["survived"]}, alpha=0.7)
     plt.title("Age vs Fare Scatter Plot")
     plt.xlabel("Age")
     plt.ylabel("Fare ($)")
     plt.yscale("log")
-    plt.legend(title="Survived", labels=["Not Survived", "Survived"])
+    plt.legend(title="Survival Status")
     save_plot("age_fare_scatter.png")
 
     # 11. Family size survival
@@ -182,20 +190,25 @@ def generate_visualizations(df):
     save_plot("family_size_survival.png")
 
     # 12. Embarked survival
-    plt.figure(figsize=(6, 4))
-    sns.barplot(data=df, x="embarked", y="survived", hue="embarked", palette="Pastel1", errorbar=None, legend=False)
-    plt.title("Survival Rate by Port of Embarkation")
-    plt.xlabel("Port of Embarkation (C = Cherbourg; Q = Queenstown; S = Southampton)")
-    plt.ylabel("Survival Rate")
+    plt.figure(figsize=(7, 4.5))
+    df_emb = df.dropna(subset=["embarked"]).copy()
+    df_emb["Survival Status"] = df_emb["survived"].map({0: "Not Survived", 1: "Survived"})
+    df_emb["embarked"] = df_emb["embarked"].map({"C": "Cherbourg", "Q": "Queenstown", "S": "Southampton"})
+    sns.countplot(data=df_emb, x="embarked", hue="Survival Status", palette={"Not Survived": COLORS["not_survived"], "Survived": COLORS["survived"]})
+    plt.title("Embarked Port vs Survival Status")
+    plt.xlabel("Port of Embarkation")
+    plt.ylabel("Passenger Count")
+    plt.legend(title="Survival Status")
     save_plot("embarked_survival.png")
 
     # 13. Cabin known survival
     plt.figure(figsize=(6, 4))
-    sns.barplot(data=df, x="cabin_known", y="survived", hue="cabin_known", palette=[COLORS["not_survived"], COLORS["survived"]], errorbar=None, legend=False)
+    df_temp = df.copy()
+    df_temp["cabin_known"] = df_temp["cabin_known"].map({0: "Missing / Unknown", 1: "Known / Recorded"})
+    sns.barplot(data=df_temp, x="cabin_known", y="survived", hue="cabin_known", palette=[COLORS["not_survived"], COLORS["survived"]], order=["Missing / Unknown", "Known / Recorded"], errorbar=None, legend=False)
     plt.title("Survival Rate by Cabin Availability")
     plt.xlabel("Cabin Location Recorded")
     plt.ylabel("Survival Rate")
-    plt.xticks([0, 1], ["Missing / Unknown", "Known / Recorded"])
     save_plot("cabin_known_survival.png")
 
     # 14. Title survival

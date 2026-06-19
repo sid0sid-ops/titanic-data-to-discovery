@@ -13,7 +13,7 @@ export default function VisualizationStory() {
     { id: 'fare_outlier_boxplot', name: 'Fare Boxplot', category: 'Distributions', file: 'fare_outlier_boxplot.png', desc: 'Box-and-whisker plot highlighting outliers in passenger ticket fares.' },
     { id: 'age_fare_scatter', name: 'Age vs Fare Scatter', category: 'General', file: 'age_fare_scatter.png', desc: 'Scatter plot of passenger age against fare, colored by survival status.' },
     { id: 'family_size_survival', name: 'Family Size Impact', category: 'Survival Rates', file: 'family_size_survival.png', desc: 'Survival probability of passengers grouped by total family members aboard.' },
-    { id: 'embarked_survival', name: 'Port of Embarkation', category: 'Survival Rates', file: 'embarked_survival.png', desc: 'Survival rate by embarkation port (Cherbourg, Queenstown, Southampton).' },
+    { id: 'embarked_survival', name: 'Port of Embarkation', category: 'Survival Rates', file: 'embarked_survival.png', desc: 'Survival distribution by embarkation port (Cherbourg, Queenstown, Southampton).' },
     { id: 'cabin_known_survival', name: 'Cabin Records', category: 'Survival Rates', file: 'cabin_known_survival.png', desc: 'Comparison of survival rates for passengers with registered cabins vs. missing cabin fields.' },
     { id: 'title_survival', name: 'Title Groupings', category: 'Survival Rates', file: 'title_survival.png', desc: 'Survival rates mapped against engineered passenger titles (Mr, Mrs, Miss, Master, Rare).' },
     { id: 'confusion_matrix', name: 'Confusion Matrix', category: 'Model', file: 'confusion_matrix.png', desc: 'Confusion matrix of actual vs. predicted classifications for the best model.' },
@@ -28,6 +28,19 @@ export default function VisualizationStory() {
       <div className="section-header-box">
         <h2>Kaggle Visual Story Gallery</h2>
         <p>Browse the static visualizations generated from the main Kaggle notebook dataset.</p>
+      </div>
+
+      <div className="warning-box" style={{ borderColor: 'var(--primary-color)', backgroundColor: 'rgba(56, 189, 248, 0.05)', marginBottom: '24px' }}>
+        <div className="warning-icon" style={{ color: 'var(--primary-color)' }}>
+          <i className="fa-solid fa-circle-info"></i>
+        </div>
+        <div className="warning-content">
+          <h4>Interactive Visualizations Notice</h4>
+          <p>
+            Dynamic interactive charts (such as Plotly 3D scatter plots, parallel categories flow, and hierarchical sunbursts) rely on a running Python kernel to process dynamic hover states and category selections. Since this dashboard is hosted as a static showcase, these plots are presented in the notebook as dynamic widgets but are represented here as static Seaborn captures.
+            To explore and query the fully interactive Plotly views, launch the notebook directly in <strong>Google Colab</strong>.
+          </p>
+        </div>
       </div>
 
       <div className="gallery-layout">

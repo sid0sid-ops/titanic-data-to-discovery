@@ -16,7 +16,12 @@ export default function PillWorkflowTabs({ activeTab, setActiveTab }) {
             className={`pill-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
             aria-selected={activeTab === tab.id}
             role="tab"
-            style={{ flex: 1, textAlign: 'center', padding: '6px 8px', fontSize: '12px' }}
+            style={{ 
+              flex: 1, 
+              textAlign: 'center', 
+              padding: 'clamp(4px, 0.7vh, 8px) clamp(6px, 1vw, 10px)', 
+              fontSize: 'clamp(11px, 1.3vh, 13px)' 
+            }}
           >
             <i className={`fa-solid ${tab.icon}`} style={{ marginRight: '6px' }}></i>
             {tab.label}

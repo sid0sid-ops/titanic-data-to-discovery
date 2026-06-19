@@ -1,7 +1,7 @@
 export const links = {
   github: 'https://github.com/sid0sid-ops/titanic-data-to-discovery',
   notebook: 'https://github.com/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
-  colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/public/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
+  colab: 'https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb',
   live: 'https://sid0sid-ops.github.io/titanic-data-to-discovery/',
 };
 

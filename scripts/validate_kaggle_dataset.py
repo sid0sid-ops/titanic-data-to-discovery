@@ -8,7 +8,7 @@ import pandas as pd
 import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-KAGGLE_DIR = PROJECT_ROOT / "titanic"
+KAGGLE_DIR = PROJECT_ROOT / "kaggle"
 
 def validate_dataset():
     print("=== Validating Kaggle Titanic Dataset ===")

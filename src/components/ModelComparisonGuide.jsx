@@ -20,8 +20,8 @@ export default function ModelComparisonGuide() {
     { name: "Decision Tree", type: "Non-Linear Tree Classifier", notebook: "00_Titanic_Kaggle_Main_Workflow", desc: "Maps decisions in a tree structure. Captures non-linear feature interactions but is highly prone to overfitting." },
     { name: "Random Forest", type: "Ensemble bagging classifier", notebook: "00_Titanic_Kaggle_Main_Workflow", desc: "A collection of randomized decision trees voting on predictions. Stabilizes variance and handles missing data well." },
     { name: "Gradient Boosting", type: "Ensemble boosting classifier", notebook: "00_Titanic_Kaggle_Main_Workflow", desc: "Sequential trees fitting on prediction residuals. High predictive power but harder to tune." },
-    { name: "TF-DF Gradient Boosted Trees", type: "TensorFlow Decision Forests Model", notebook: "01_Titanic_TFDF_Advanced_Model", desc: "Advanced GBT model utilizing tf.strings tokenization and Colab-only TF-DF modules." },
-    { name: "Ensemble", type: "Aggregated voting model", notebook: "01_Titanic_TFDF_Advanced_Model", desc: "Combines multiple model seeds and estimators to maximize generalized competition performance." }
+    { name: "YDF Gradient Boosted Trees", type: "Yggdrasil Decision Forests Model", notebook: "01_Titanic_Model_Comparison_Project", desc: "Advanced GBT model trained natively using the YDF library in Google Colab." },
+    { name: "Ensemble", type: "Aggregated voting model", notebook: "01_Titanic_Model_Comparison_Project", desc: "Combines multiple model seeds and estimators to maximize generalized competition performance." }
   ];
 
   return (

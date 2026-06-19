@@ -8,12 +8,12 @@ export const notebookGuide = [
     colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb"
   },
   {
-    id: "01_Titanic_TFDF_Advanced_Model.ipynb",
-    title: "01: Titanic TF-DF Advanced Model",
-    purpose: "Advanced machine learning showcase utilizing Google Colab-only TensorFlow Decision Forests (Gradient Boosted Trees Model, RandomSearch hyperparameter tuning).",
+    id: "01_Titanic_Model_Comparison_Project.ipynb",
+    title: "01: Titanic Model Comparison Project",
+    purpose: "Model comparison notebook evaluating Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, and CatBoost on the Kaggle dataset.",
     dataset: "Kaggle Dataset (kaggle/train.csv, kaggle/test.csv)",
     keyOutput: "submissions/submission_tfdf_tuned.csv",
-    colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_TFDF_Advanced_Model.ipynb"
+    colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_Model_Comparison_Project.ipynb"
   },
   {
     id: "02_Titanic_OpenML_Reference_Workflow.ipynb",
