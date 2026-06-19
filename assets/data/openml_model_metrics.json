@@ -1,0 +1,26 @@
+[
+  {
+    "model": "Logistic Regression",
+    "accuracy": 0.8053,
+    "precision": 0.7634,
+    "recall": 0.71,
+    "f1": 0.7358,
+    "roc_auc": 0.8673
+  },
+  {
+    "model": "Random Forest",
+    "accuracy": 0.8511,
+    "precision": 0.8675,
+    "recall": 0.72,
+    "f1": 0.7869,
+    "roc_auc": 0.8969
+  },
+  {
+    "model": "Gradient Boosting",
+    "accuracy": 0.8244,
+    "precision": 0.8068,
+    "recall": 0.71,
+    "f1": 0.7553,
+    "roc_auc": 0.8883
+  }
+]

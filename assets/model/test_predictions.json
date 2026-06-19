@@ -1,0 +1,53 @@
+[
+  {
+    "profile": "Single, Mr. Third Class",
+    "input": {
+      "pclass": 3,
+      "sex": "male",
+      "age": 22.0,
+      "sibsp": 0,
+      "parch": 0,
+      "fare": 7.25,
+      "embarked": "S",
+      "cabin": NaN,
+      "name": "Single, Mr. Third Class"
+    },
+    "probability": 0.10985315952056761,
+    "prediction": 0,
+    "label": "Not Survived"
+  },
+  {
+    "profile": "Married, Mrs. First Class",
+    "input": {
+      "pclass": 1,
+      "sex": "female",
+      "age": 38.0,
+      "sibsp": 1,
+      "parch": 0,
+      "fare": 71.28,
+      "embarked": "C",
+      "cabin": "C85",
+      "name": "Married, Mrs. First Class"
+    },
+    "probability": 0.9593227772544307,
+    "prediction": 1,
+    "label": "Survived"
+  },
+  {
+    "profile": "Child, Master. Second Class",
+    "input": {
+      "pclass": 2,
+      "sex": "male",
+      "age": 6.0,
+      "sibsp": 1,
+      "parch": 1,
+      "fare": 26.0,
+      "embarked": "S",
+      "cabin": NaN,
+      "name": "Child, Master. Second Class"
+    },
+    "probability": 0.725338028551416,
+    "prediction": 1,
+    "label": "Survived"
+  }
+]
