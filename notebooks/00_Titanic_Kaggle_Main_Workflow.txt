@@ -27,6 +27,8 @@ filename_prefix = "kaggle_"
 print("✓ Step 1: Libraries and environment successfully set up!")
 
 
+# %%
+
 import os
 
 possible_paths = [
@@ -71,6 +73,8 @@ print("Test Shape:", test.shape)
 df.info()
 
 
+# %%
+
 df = df.copy()
 df.columns = (
     df.columns
@@ -103,6 +107,8 @@ display(pd.DataFrame({"cleaned_columns": df.columns}))
 display(df.head())
 
 
+# %%
+
 missing = (
     pd.DataFrame({
         "missing_count": df.isna().sum(),
@@ -113,6 +119,8 @@ missing = (
 )
 display(missing)
 
+
+# %%
 
 # 1. Survival Count Plot
 plt.figure(figsize=(6, 4))
@@ -128,6 +136,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_count.png"), d
 plt.show()
 
 
+# %%
+
 # 2. Sex Distribution
 plt.figure(figsize=(6, 4))
 sns.countplot(data=df, x="sex", hue="sex", palette=["#56B4E9", "#CC79A7"], legend=False)
@@ -139,6 +149,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}sex_count.png"), dpi=15
 plt.show()
 
 
+# %%
+
 # 3. Survival Rate by Gender
 plt.figure(figsize=(6, 4))
 sns.barplot(data=df, x="sex", y="survived", hue="sex", palette=["#56B4E9", "#CC79A7"], errorbar=None, legend=False)
@@ -149,6 +161,8 @@ plt.ylabel("Survival Rate")
 plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_rate_by_sex.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
 
 # 4. Survival Rate by Passenger Class
 plt.figure(figsize=(6, 4))
@@ -162,6 +176,8 @@ plt.ylabel("Survival Rate")
 plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_rate_by_class.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
 
 # 5. Survival Rate Heatmap by Gender and Class
 plt.figure(figsize=(6, 4))
@@ -177,6 +193,22 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_by_sex_class_h
 plt.show()
 
 
+# %%
+
+# 5.5. Survival Rate Barplot by Gender and Class
+plt.figure(figsize=(8, 4.8))
+sns.barplot(data=df, x="pclass", y="survived", hue="sex", errorbar=None)
+plt.title("Survival Rate by Gender and Class (Barplot)")
+plt.xlabel("Passenger Class")
+plt.ylabel("Survival Rate")
+plt.ylim(0, 1)
+
+plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_by_gender_class.png"), dpi=150, bbox_inches="tight")
+plt.show()
+
+
+# %%
+
 # 6. Age Distribution by Survival Density
 plt.figure(figsize=(7, 4.5))
 sns.kdeplot(data=df[df["survived"] == 1], x="age", fill=True, color="#0072B2", label="Survived", alpha=0.5)
@@ -189,6 +221,24 @@ plt.legend()
 plt.savefig(os.path.join(export_path, f"{filename_prefix}age_distribution_survival.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
+
+# 6.5. Passenger Age Distribution Histogram by Outcome
+plt.figure(figsize=(8, 4.8))
+outcome_palette = ["#c2415d", "#137f8b"]
+df_temp = df.copy()
+df_temp["survival_label"] = df_temp["survived"].map({0: "Died", 1: "Survived"})
+sns.histplot(data=df_temp, x="age", hue="survival_label", bins=30, element="step", palette=outcome_palette)
+plt.title("Passenger Age Distribution by Outcome")
+plt.xlabel("Age")
+plt.ylabel("Passenger Count")
+
+plt.savefig(os.path.join(export_path, f"{filename_prefix}age_distribution.png"), dpi=150, bbox_inches="tight")
+plt.show()
+
+
+# %%
 
 # 7. Survival Rate by Age Group
 plt.figure(figsize=(8, 4.5))
@@ -208,6 +258,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}age_group_survival.png"
 plt.show()
 
 
+# %%
+
 # 8. Fare Distribution Histogram
 plt.figure(figsize=(7, 4.5))
 df_temp = df.copy()
@@ -221,6 +273,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}fare_distribution.png")
 plt.show()
 
 
+# %%
+
 # 9. Fare Boxplot (Identifying Outliers)
 plt.figure(figsize=(6, 4))
 df_temp = df.copy()
@@ -233,6 +287,8 @@ plt.ylabel("Fare ($)")
 plt.savefig(os.path.join(export_path, f"{filename_prefix}fare_outlier_boxplot.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
 
 # 10. Age vs Fare Scatter Plot
 plt.figure(figsize=(8, 5))
@@ -249,6 +305,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}age_fare_scatter.png"),
 plt.show()
 
 
+# %%
+
 # 11. Survival Rate by Family Size
 plt.figure(figsize=(7, 4))
 df_temp = df.copy()
@@ -261,6 +319,8 @@ plt.ylabel("Survival Rate")
 plt.savefig(os.path.join(export_path, f"{filename_prefix}family_size_survival.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
 
 # 12. Embarked Location Survival and Death Distribution
 plt.figure(figsize=(7, 4.5))
@@ -277,6 +337,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}embarked_survival.png")
 plt.show()
 
 
+# %%
+
 # 13. Survival Rate by Cabin Availability
 plt.figure(figsize=(6, 4))
 df_temp = df.copy()
@@ -289,6 +351,8 @@ plt.ylabel("Survival Rate")
 plt.savefig(os.path.join(export_path, f"{filename_prefix}cabin_known_survival.png"), dpi=150, bbox_inches="tight")
 plt.show()
 
+
+# %%
 
 # 14. Title Groupings vs Survival
 plt.figure(figsize=(7, 4.5))
@@ -314,6 +378,8 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}title_survival.png"), d
 plt.show()
 
 
+# %%
+
 # 1. Interactive Sunburst (Ticket Class -> Sex -> Survival Status)
 vis_df = df.copy()
 vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
@@ -329,6 +395,8 @@ fig_sunburst = px.sunburst(
 fig_sunburst.update_layout(margin=dict(t=40, l=0, r=0, b=0))
 fig_sunburst.show()
 
+
+# %%
 
 # 2. Interactive Scatter (Age vs. Fare)
 vis_df = df.copy()
@@ -349,6 +417,8 @@ fig_scatter.update_layout(xaxis_title="Age (Years)", yaxis_title="Fare (GBP, Log
 fig_scatter.show()
 
 
+# %%
+
 # 3. Interactive 3D Scatter (Age vs. Fare vs. Pclass)
 vis_df = df.copy()
 vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
@@ -367,6 +437,8 @@ fig_3d = px.scatter_3d(
 fig_3d.show()
 
 
+# %%
+
 # 4. Interactive Parallel Categories Flow
 vis_df = df.copy()
 vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
@@ -381,6 +453,8 @@ fig_parcat = px.parallel_categories(
 )
 fig_parcat.show()
 
+
+# %%
 
 class TitanicFeatureEngineer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
@@ -414,6 +488,8 @@ class TitanicFeatureEngineer(BaseEstimator, TransformerMixin):
         return X_out.drop(columns=[col for col in leakage_or_raw if col in X_out.columns])
 
 
+# %%
+
 class GroupMedianAgeImputer(BaseEstimator, TransformerMixin):
     def __init__(self, age_col="age", group_cols=("pclass", "sex")):
         self.age_col = age_col
@@ -439,6 +515,8 @@ class GroupMedianAgeImputer(BaseEstimator, TransformerMixin):
         return X_out
 
 
+# %%
+
 features = ["pclass", "sex", "age", "sibsp", "parch", "fare", "embarked", "cabin", "name"]
 X = df.drop(columns=["survived"])
 y = df["survived"].astype(int)
@@ -448,6 +526,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 print("Train shape:", X_train.shape, "| Test shape:", X_test.shape)
 
+
+# %%
 
 numeric_features = ["age", "sibsp", "parch", "fare", "family_size"]
 categorical_features = ["pclass", "sex", "embarked", "is_alone", "title", "has_cabin"]
@@ -467,6 +547,8 @@ preprocessor = ColumnTransformer(transformers=[
     ("cat", categorical_pipeline, categorical_features)
 ])
 
+
+# %%
 
 base_pipeline = Pipeline(steps=[
     ("group_age_imputer", GroupMedianAgeImputer()),
@@ -493,6 +575,8 @@ print("GridSearchCV model search complete.")
 print("Best params:", grid_search.best_params_)
 print(f"Best cross-validation accuracy: {grid_search.best_score_:.4f}")
 
+
+# %%
 
 best_pipeline = grid_search.best_estimator_
 y_pred = best_pipeline.predict(X_test)
@@ -537,8 +621,12 @@ def predict_and_print(passenger_df, pipeline_model):
         print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {probability[idx]:.4f} ({probability[idx]*100:.1f}%) | Prediction: {outcome}")
 
 
+# %%
+
 best_pipeline
 
+
+# %%
 
 preprocess_step = best_pipeline.named_steps["preprocess"]
 encoded_feature_names = preprocess_step.get_feature_names_out()
@@ -578,6 +666,8 @@ else:
     display(interpretation)
 
 
+# %%
+
 model = best_pipeline
 
 custom_passengers = pd.DataFrame([
@@ -590,6 +680,8 @@ print("LIVE SIMULATION PREDICTIONS")
 print("=" * 60)
 predict_and_print(custom_passengers, model)
 
+
+# %%
 
 # Calculate variance and standard deviation of Fare
 fare_var = df["fare"].var()
@@ -611,6 +703,24 @@ plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_correlation.
 plt.show()
 
 
+# %%
+
+# Create correlation heatmap for raw and engineered demographic features (correlation_heatmap.png)
+plt.figure(figsize=(8, 6))
+correlation_source = df[["age", "fare", "sibsp", "parch", "pclass", "survived"]].copy()
+correlation_source["sex_female"] = (df["sex"] == "female").astype(int)
+correlation_source["family_size"] = df["sibsp"] + df["parch"] + 1
+correlation = correlation_source.corr(numeric_only=True)
+
+sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="vlag")
+plt.title("Correlation Table Heatmap")
+
+plt.savefig(os.path.join(export_path, f"{filename_prefix}correlation_heatmap.png"), bbox_inches="tight", dpi=150)
+plt.show()
+
+
+# %%
+
 from scipy.stats import ttest_ind
 
 male = df[df["sex"] == "male"]["survived"]
@@ -628,6 +738,8 @@ else:
     print("\nInterpretation: Since the p-value is greater than 0.05, the difference is NOT statistically significant.")
 
 
+# %%
+
 from sklearn.linear_model import LogisticRegression
 
 # Prepare data
@@ -642,15 +754,17 @@ simple_model = LogisticRegression(solver="liblinear", random_state=42)
 simple_model.fit(X_simple, y_simple)
 
 # Predict survival for a custom passenger: Age=25, Fare=50, Pclass=2
-custom_test = np.array([[25.0, 50.0, 2]])
+custom_test = pd.DataFrame([[25.0, 50.0, 2]], columns=X_simple.columns)
 pred_survival = simple_model.predict(custom_test)[0]
 pred_prob = simple_model.predict_proba(custom_test)[0, 1]
 
 print("=== Simple Logistic Regression Predictor ===")
-print(f"Passenger Profile  : Age=25, Fare=50, Pclass=2")
+print("Passenger Profile  : Age=25, Fare=50, Pclass=2")
 print(f"Survival Probability: {pred_prob*100:.2f}%")
 print(f"Prediction Outcome : {'SURVIVES' if pred_survival == 1 else 'DECEASED'}")
 
+
+# %%
 
 # Fit the optimal pipeline on the full training set (X, y)
 final_pipeline = Pipeline(steps=[
@@ -683,4 +797,41 @@ submission.to_csv(sub_path, index=False)
 
 print(f"✓ Saved Kaggle predictions to: {sub_path}")
 print(submission.head(10))
+
+
+# %%
+
+# Generate and inspect assignment evidence; values are not pasted manually.
+import importlib.util
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+repo_url = 'https://github.com/sid0sid-ops/titanic-data-to-discovery.git'
+in_colab = 'COLAB_RELEASE_TAG' in os.environ
+if in_colab:
+    project_root = Path('/content/titanic-data-to-discovery')
+    if not (project_root / 'scripts' / 'generate_assignment_evidence.py').exists():
+        subprocess.run(['git', 'clone', repo_url, str(project_root)], check=True)
+else:
+    candidates = [Path.cwd(), Path.cwd().parent]
+    project_root = next((path for path in candidates if (path / 'scripts' / 'generate_assignment_evidence.py').exists()), None)
+
+if project_root is None:
+    raise FileNotFoundError('Open this notebook from the repository root or clone the repository first.')
+else:
+    required = {'pandas': 'pandas', 'matplotlib': 'matplotlib', 'seaborn': 'seaborn', 'sklearn': 'scikit-learn', 'scipy': 'scipy', 'plotly': 'plotly'}
+    missing = [package for module, package in required.items() if importlib.util.find_spec(module) is None]
+    if missing:
+        subprocess.run([sys.executable, '-m', 'pip', 'install', *missing], check=True)
+    evidence_script = project_root / 'scripts' / 'generate_assignment_evidence.py'
+    subprocess.run([sys.executable, str(evidence_script)], cwd=project_root, check=True)
+    metrics_path = project_root / 'reports' / 'metrics' / 'model_metrics.json'
+    evidence_metrics = json.loads(metrics_path.read_text())
+    display(pd.DataFrame([evidence_metrics]).T.rename(columns={0: 'value'}))
+    print('Evidence tables: reports/tables/')
+    print('Evidence figures: reports/figures/')
+    print('Evidence metrics: reports/metrics/')
 

@@ -22,7 +22,7 @@ for lib in libs:
         __import__(lib)
     except ImportError:
         print(f"Installing {lib}...")
-        !{sys.executable} -m pip install {lib} -U --quiet
+        os.system(f"{sys.executable} -m pip install {lib} -U --quiet")
 
 import pandas as pd
 import numpy as np

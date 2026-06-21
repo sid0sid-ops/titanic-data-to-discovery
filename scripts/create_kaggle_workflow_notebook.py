@@ -268,6 +268,19 @@ def main():
         """),
         
         make_code_cell(r"""
+            # 5.5. Survival Rate Barplot by Gender and Class
+            plt.figure(figsize=(8, 4.8))
+            sns.barplot(data=df, x="pclass", y="survived", hue="sex", errorbar=None)
+            plt.title("Survival Rate by Gender and Class (Barplot)")
+            plt.xlabel("Passenger Class")
+            plt.ylabel("Survival Rate")
+            plt.ylim(0, 1)
+
+            plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_by_gender_class.png"), dpi=150, bbox_inches="tight")
+            plt.show()
+        """),
+
+        make_code_cell(r"""
             # 6. Age Distribution by Survival Density
             plt.figure(figsize=(7, 4.5))
             sns.kdeplot(data=df[df["survived"] == 1], x="age", fill=True, color="#0072B2", label="Survived", alpha=0.5)
@@ -281,6 +294,21 @@ def main():
             plt.show()
         """),
         
+        make_code_cell(r"""
+            # 6.5. Passenger Age Distribution Histogram by Outcome
+            plt.figure(figsize=(8, 4.8))
+            outcome_palette = ["#c2415d", "#137f8b"]
+            df_temp = df.copy()
+            df_temp["survival_label"] = df_temp["survived"].map({0: "Died", 1: "Survived"})
+            sns.histplot(data=df_temp, x="age", hue="survival_label", bins=30, element="step", palette=outcome_palette)
+            plt.title("Passenger Age Distribution by Outcome")
+            plt.xlabel("Age")
+            plt.ylabel("Passenger Count")
+
+            plt.savefig(os.path.join(export_path, f"{filename_prefix}age_distribution.png"), dpi=150, bbox_inches="tight")
+            plt.show()
+        """),
+
         make_code_cell(r"""
             # 7. Survival Rate by Age Group
             plt.figure(figsize=(8, 4.5))
@@ -814,6 +842,21 @@ def main():
             plt.show()
         """),
         
+        make_code_cell(r"""
+            # Create correlation heatmap for raw and engineered demographic features (correlation_heatmap.png)
+            plt.figure(figsize=(8, 6))
+            correlation_source = df[["age", "fare", "sibsp", "parch", "pclass", "survived"]].copy()
+            correlation_source["sex_female"] = (df["sex"] == "female").astype(int)
+            correlation_source["family_size"] = df["sibsp"] + df["parch"] + 1
+            correlation = correlation_source.corr(numeric_only=True)
+
+            sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="vlag")
+            plt.title("Correlation Table Heatmap")
+
+            plt.savefig(os.path.join(export_path, f"{filename_prefix}correlation_heatmap.png"), bbox_inches="tight", dpi=150)
+            plt.show()
+        """),
+
         make_md_cell("""
             ### Part 3: Hypothesis Testing
             We run a two-sample independent Student's t-test to determine if the difference in survival rates between women and men is statistically significant.
@@ -857,12 +900,12 @@ def main():
             simple_model.fit(X_simple, y_simple)
 
             # Predict survival for a custom passenger: Age=25, Fare=50, Pclass=2
-            custom_test = np.array([[25.0, 50.0, 2]])
+            custom_test = pd.DataFrame([[25.0, 50.0, 2]], columns=X_simple.columns)
             pred_survival = simple_model.predict(custom_test)[0]
             pred_prob = simple_model.predict_proba(custom_test)[0, 1]
 
             print("=== Simple Logistic Regression Predictor ===")
-            print(f"Passenger Profile  : Age=25, Fare=50, Pclass=2")
+            print("Passenger Profile  : Age=25, Fare=50, Pclass=2")
             print(f"Survival Probability: {pred_prob*100:.2f}%")
             print(f"Prediction Outcome : {'SURVIVES' if pred_survival == 1 else 'DECEASED'}")
         """),
@@ -919,18 +962,63 @@ def main():
             print(f"✓ Saved Kaggle predictions to: {sub_path}")
             print(submission.head(10))
         """),
-        
+
         make_md_cell("""
-            ### Classroom Assignment Answers: June 18, 2026
-            
-            **1. What have you learnt from the Titanic Disaster?**
-            * *Distractions are dangerous:* Titanic's wireless operators were distracted by private passenger telegrams and ignored critical ice warnings. Similarly, in ML, chasing vanity metrics or complex architectures without conducting data quality checks distracts from critical target leaks and dataset biases.
-            * *Keep stakeholders informed:* Crew delayed informing passengers of lifeboat limits, causing panic and under-filled lifeboats. In AI, developers must keep stakeholders informed of model bounds and failure rates to build trust and ensure safety.
-            * *Traceability is essential:* Post-accident inquiries struggled due to poor passenger and manifest logging. In ML, keeping a strict trace of data sources, pipeline steps, and model weights ensures reproducibility and accountability.
-            * *Documentation has lasting benefits:* The senate inquiry records resulted in international safety laws that save lives to this day. Documenting ML models and experiments guarantees future auditability, maintenance, and explainability.
+            # Professor Questions and Evidence
+
+            ## Day 2 — Python for Data Science
+            Review the load, clean, explore, visualize, model, predict, and communicate workflow above.
+
+            ## Day 3 — Data Visualization
+            Review the generated gender/class plots and interactive exploratory views.
+
+            ## Day 4 — Statistics for ML
+            Review descriptive statistics, the gender-survival hypothesis test, and held-out model evaluation.
+
+            ## Assignment Evidence Generated from Code
+            The next cell runs the shared evidence generator. Exact professor questions and editable response scaffolds are maintained in `docs/` and `reports/` rather than answered here.
+        """),
+
+        make_code_cell("""
+            # Generate and inspect assignment evidence; values are not pasted manually.
+            import importlib.util
+            import json
+            import os
+            import subprocess
+            import sys
+            from pathlib import Path
+
+            repo_url = 'https://github.com/sid0sid-ops/titanic-data-to-discovery.git'
+            in_colab = 'COLAB_RELEASE_TAG' in os.environ
+            if in_colab:
+                project_root = Path('/content/titanic-data-to-discovery')
+                if not (project_root / 'scripts' / 'generate_assignment_evidence.py').exists():
+                    subprocess.run(['git', 'clone', repo_url, str(project_root)], check=True)
+            else:
+                candidates = [Path.cwd(), Path.cwd().parent]
+                project_root = next((path for path in candidates if (path / 'scripts' / 'generate_assignment_evidence.py').exists()), None)
+
+            if project_root is None:
+                raise FileNotFoundError('Open this notebook from the repository root or clone the repository first.')
+            else:
+                required = {'pandas': 'pandas', 'matplotlib': 'matplotlib', 'seaborn': 'seaborn', 'sklearn': 'scikit-learn', 'scipy': 'scipy', 'plotly': 'plotly'}
+                missing = [package for module, package in required.items() if importlib.util.find_spec(module) is None]
+                if missing:
+                    subprocess.run([sys.executable, '-m', 'pip', 'install', *missing], check=True)
+                evidence_script = project_root / 'scripts' / 'generate_assignment_evidence.py'
+                subprocess.run([sys.executable, str(evidence_script)], cwd=project_root, check=True)
+                metrics_path = project_root / 'reports' / 'metrics' / 'model_metrics.json'
+                evidence_metrics = json.loads(metrics_path.read_text())
+                display(pd.DataFrame([evidence_metrics]).T.rename(columns={0: 'value'}))
+                print('Evidence tables: reports/tables/')
+                print('Evidence figures: reports/figures/')
+                print('Evidence metrics: reports/metrics/')
         """)
     ]
     
+    for index, cell in enumerate(cells):
+        cell["id"] = f"cell-{index:03d}"
+
     notebook = {
         "cells": cells,
         "metadata": {
@@ -947,7 +1035,13 @@ def main():
         nb_path.unlink()
     with open(nb_path, "w", encoding="utf-8") as f:
         json.dump(notebook, f, indent=2, ensure_ascii=False)
-    print(f"✓ Generated {nb_name}")
+
+    code_export = "\n\n# %%\n\n".join(
+        "".join(cell["source"]) for cell in cells if cell["cell_type"] == "code"
+    ) + "\n"
+    for suffix in (".py", ".txt"):
+        (NOTEBOOKS_DIR / f"00_Titanic_Kaggle_Main_Workflow{suffix}").write_text(code_export, encoding="utf-8")
+    print(f"✓ Generated {nb_name} and synchronized .py/.txt code exports")
 
 if __name__ == "__main__":
     main()
