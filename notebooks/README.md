@@ -5,7 +5,7 @@ This directory contains the Google Colab-ready notebooks for the Titanic Data Sc
 ## Primary Notebooks
 
 ### 1. Kaggle Main Workflow
-* **File:** [00_Titanic_Kaggle_Main_Workflow.ipynb](file:///Users/sid_mac/Documents/GitHub/titanic-data-to-discovery/notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb)
+* **File:** [00_Titanic_Kaggle_Main_Workflow.ipynb](00_Titanic_Kaggle_Main_Workflow.ipynb)
 * **Purpose:** Contains the complete classical machine learning pipeline for the Kaggle Titanic Competition:
   * Local Kaggle files ingestion (`train.csv`, `test.csv`, `gender_submission.csv`)
   * Exploratory Data Analysis (EDA) with Plotly (interactive charts) and Seaborn (static plots)
@@ -15,7 +15,7 @@ This directory contains the Google Colab-ready notebooks for the Titanic Data Sc
   * Holdout validation, classification diagnostics, and Kaggle-compliant submission export (`submissions/submission_best_classical.csv`).
 
 ### 2. Model Comparison Project
-* **File:** [01_Titanic_Model_Comparison_Project.ipynb](file:///Users/sid_mac/Documents/GitHub/titanic-data-to-discovery/notebooks/01_Titanic_Model_Comparison_Project.ipynb)
+* **File:** [01_Titanic_Model_Comparison_Project.ipynb](01_Titanic_Model_Comparison_Project.ipynb)
 * **Purpose:** Implements a comparative machine learning study evaluating multiple classification algorithms on the Titanic dataset:
   * Ingests local train/test CSV splits and constructs validation partitions
   * Engineers custom demographic and family features
@@ -25,7 +25,7 @@ This directory contains the Google Colab-ready notebooks for the Titanic Data Sc
 ## Reference Notebooks
 
 ### 3. OpenML Reference Workflow
-* **File:** [02_Titanic_OpenML_Reference_Workflow.ipynb](file:///Users/sid_mac/Documents/GitHub/titanic-data-to-discovery/notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb)
+* **File:** [02_Titanic_OpenML_Reference_Workflow.ipynb](02_Titanic_OpenML_Reference_Workflow.ipynb)
 * **Purpose:** The original 1,309-row combined historical dataset model. Safe preprocessing and Logistic Regression serve as the foundational learning guide.
 
 ---

@@ -1,0 +1,32 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb notebooks/01_Titanic_Model_Comparison_Project.ipynb notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb notebooks/03_Assignment_Linear_Regression_Titanic.ipynb notebooks/04_Assignment_Logistic_Regression_Titanic.ipynb notebooks/05_Assignment_Supervised_vs_Unsupervised_Titanic.ipynb scripts src/titanic_project tests
+        language: system
+        pass_filenames: false
+
+      - id: ruff-format-check
+        name: ruff format check
+        entry: ruff format --check scripts/create_kaggle_workflow_notebook.py scripts/create_openml_reference_notebook.py scripts/create_model_comparison_notebook.py scripts/validate_notebooks.py
+        language: system
+        pass_filenames: false
+
+      - id: notebook-validation
+        name: notebook validation
+        entry: venv/bin/python scripts/validate_notebooks.py
+        language: system
+        pass_filenames: false
+
+      - id: pytest
+        name: pytest
+        entry: venv/bin/python -m pytest
+        language: system
+        pass_filenames: false
+
+      - id: frontend-build
+        name: frontend build
+        entry: npm run build
+        language: system
+        pass_filenames: false

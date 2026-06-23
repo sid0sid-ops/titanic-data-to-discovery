@@ -1,0 +1,13 @@
+stage,column,missing_count,missing_percent
+before_cleaning_raw_kaggle,passengerid,0,0.0
+before_cleaning_raw_kaggle,survived,0,0.0
+before_cleaning_raw_kaggle,pclass,0,0.0
+before_cleaning_raw_kaggle,name,0,0.0
+before_cleaning_raw_kaggle,sex,0,0.0
+before_cleaning_raw_kaggle,age,177,19.87
+before_cleaning_raw_kaggle,sibsp,0,0.0
+before_cleaning_raw_kaggle,parch,0,0.0
+before_cleaning_raw_kaggle,ticket,0,0.0
+before_cleaning_raw_kaggle,fare,0,0.0
+before_cleaning_raw_kaggle,cabin,687,77.1
+before_cleaning_raw_kaggle,embarked,2,0.22

@@ -130,13 +130,13 @@ The notebook reports actual computed values for:
 - Classification report
 - 5-fold cross-validation accuracy
 
-The current validated notebook run produced:
+An archived OpenML reference run reported:
 
 ```text
 Test Accuracy: 0.8473 / 84.73%
 ```
 
-This value is specific to the current validated run. It may change with dataset version, preprocessing, train-test split, random state, and feature engineering.
+**Metric provenance:** OpenML Titanic, 1,309 rows; Logistic Regression; numeric features `age`, `sibsp`, `parch`, `fare`, `family_size`; categorical features `pclass`, `sex`, `embarked`, `is_alone`, `title`, `has_cabin`; stratified 80/20 holdout; `random_state=42`; source `notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb`. It is not the current Kaggle assignment baseline.
 
 Do not fake any extra metrics. The confusion matrix, classification report, and cross-validation scores should be read from the executed notebook outputs.
 

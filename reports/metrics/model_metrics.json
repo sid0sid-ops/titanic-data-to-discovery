@@ -1,0 +1,31 @@
+{
+  "accuracy": 0.8156424581005587,
+  "precision": 0.8103448275862069,
+  "recall": 0.6811594202898551,
+  "f1": 0.7401574803149606,
+  "roc_auc": 0.8499341238471674,
+  "dataset_source": "Local file: kaggle/train.csv",
+  "dataset_variant": "Kaggle 891-row training dataset",
+  "dataset_row_count": 891,
+  "random_state": 42,
+  "validation_rows": 179,
+  "split": "stratified 80/20 holdout from kaggle/train.csv",
+  "model": "LogisticRegression baseline",
+  "features_used": [
+    "pclass",
+    "sex",
+    "age",
+    "sibsp",
+    "parch",
+    "fare",
+    "embarked",
+    "family_size",
+    "is_alone"
+  ],
+  "generation_source": "scripts/generate_assignment_evidence.py",
+  "leakage_columns_excluded": [
+    "boat",
+    "body"
+  ],
+  "warning": "Do not mix Kaggle, Seaborn, and OpenML Titanic datasets blindly."
+}

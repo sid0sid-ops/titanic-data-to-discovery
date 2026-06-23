@@ -60,8 +60,44 @@ export const kaggleSteps = [
     isGallery: true
   },
   {
-    id: 'engineering',
+    id: 'statistics',
     stepNumber: 6,
+    title: 'Hands-On Statistics Exercise',
+    subtitle: 'Descriptive statistics, variance, correlation, hypothesis testing, and regression',
+    explanation: 'This section mirrors the notebook classroom exercise. It first calculates mean, median, and survival rate, then measures Fare variance and standard deviation, creates one consolidated correlation heatmap, runs a t-test comparing female and male survival rates, and finishes with a small logistic regression example.',
+    whyItMatters: 'These statistics explain why the later machine-learning pipeline is reasonable: correlation highlights survival-related variables, the t-test checks whether gender survival differences are statistically significant, and logistic regression connects statistics to classification.',
+    codeSnippet: `# Part 1: Descriptive statistics
+age_mean = df["age"].mean()
+age_median = df["age"].median()
+fare_mean = df["fare"].mean()
+fare_median = df["fare"].median()
+survival_rate = df["survived"].mean()
+
+# Part 2: variance and one consolidated correlation heatmap
+fare_var = df["fare"].var()
+fare_std = df["fare"].std()
+correlation_source = df[["age", "fare", "pclass", "sibsp", "parch", "survived"]].copy()
+correlation_source["sex_female"] = (df["sex"] == "female").astype(int)
+correlation_source["family_size"] = df["sibsp"] + df["parch"] + 1
+sns.heatmap(correlation_source.corr(numeric_only=True), annot=True, fmt=".2f", center=0, cmap="coolwarm", vmin=-1, vmax=1)
+
+# Part 3: hypothesis testing
+from scipy.stats import ttest_ind
+male = df[df["sex"] == "male"]["survived"]
+female = df[df["sex"] == "female"]["survived"]
+t_stat, p_val = ttest_ind(female, male)
+
+# Part 4: simple logistic regression
+X_simple = df[["age", "fare", "pclass"]].fillna(df[["age", "fare", "pclass"]].mean())
+y_simple = df["survived"]
+simple_model = LogisticRegression(solver="liblinear", random_state=42)
+simple_model.fit(X_simple, y_simple)`,
+    outputSummary: 'Part 1 prints Age/Fare mean and median plus survival rate. Part 2 prints Fare variance/std and renders one correlation heatmap. Part 3 reports a statistically significant gender survival difference. Part 4 trains a simple Logistic Regression example.',
+    keyInsight: 'The t-test validates that gender survival differences are not just visual noise, while the heatmap and regression show how statistical relationships become machine-learning features.'
+  },
+  {
+    id: 'engineering',
+    stepNumber: 7,
     title: 'Feature Engineering Transformer',
     subtitle: 'Create family size, titles, and cabin indicators',
     explanation: 'We build a scikit-learn compatible transformer `TitanicFeatureEngineer`. It extracts social titles (Mr, Mrs, Miss, Master, Rare) from passenger names, calculates family size (sibsp + parch + 1), and maps cabin presence. It drops high-cardinality/leakage columns.',
@@ -72,7 +108,7 @@ export const kaggleSteps = [
   },
   {
     id: 'imputation',
-    stepNumber: 7,
+    stepNumber: 8,
     title: 'Custom Imputation (Leakage-Safe)',
     subtitle: 'Group median age imputation class',
     explanation: 'Instead of filling missing ages with a global median, we write a custom `GroupMedianAgeImputer` that groups passengers by class and gender, computing medians on the training split only.',
@@ -83,7 +119,7 @@ export const kaggleSteps = [
   },
   {
     id: 'split',
-    stepNumber: 8,
+    stepNumber: 9,
     title: 'Train/Test Split',
     subtitle: 'Split train.csv into training and validation folds',
     explanation: 'Since the Kaggle test set does not contain Ground Truth labels, we split the 891 training rows into an 80/20 train/validation split. We stratify by survived to maintain outcome proportions.',
@@ -94,7 +130,7 @@ export const kaggleSteps = [
   },
   {
     id: 'pipeline',
-    stepNumber: 9,
+    stepNumber: 10,
     title: 'Preprocessing Pipeline',
     subtitle: 'Build Scikit-Learn preprocessors',
     explanation: 'We partition columns into numeric and categorical types. Numeric columns are scaled using StandardScaler; categorical features are one-hot encoded using OneHotEncoder, dropping the first category to prevent collinearity.',
@@ -105,19 +141,18 @@ export const kaggleSteps = [
   },
   {
     id: 'training',
-    stepNumber: 10,
+    stepNumber: 11,
     title: 'GridSearchCV Model Search',
     subtitle: 'Optimize model parameters and search pipelines',
     explanation: 'We perform a Grid Search (GridSearchCV) over Logistic Regression hyperparameters (C regularization). We evaluate performance across a 5-fold cross-validation split.',
     whyItMatters: 'GridSearchCV optimizes hyperparameters in a cross-validated loop, avoiding overfitting and providing stable model configurations.',
     codeSnippet: 'base_pipeline = Pipeline(steps=[\n    ("group_age_imputer", GroupMedianAgeImputer()),\n    ("feature_engineer", TitanicFeatureEngineer()),\n    ("preprocess", preprocessor),\n    ("classifier", LogisticRegression(max_iter=1000, solver="liblinear", random_state=42))\n])\n\nparam_grid = {"classifier__C": [0.1, 1.0, 10.0]}\ncv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\ngrid_search = GridSearchCV(estimator=base_pipeline, param_grid=param_grid, cv=cv, scoring="accuracy", n_jobs=-1)\ngrid_search.fit(X_train, y_train)\n\nprint("Best params:", grid_search.best_params_)\nprint(f"Best CV accuracy: {grid_search.best_score_:.4f}")',
     outputSummary: 'Best params: {\'classifier__C\': 1.0} | Best CV accuracy: 0.8301',
-    keyInsight: 'Regularization parameter C=1.0 balances model simplicity and accuracy, preventing high coefficient weights from overfitting.',
-    isComparisonTable: true
+    keyInsight: 'Regularization parameter C=1.0 balances model simplicity and accuracy, preventing high coefficient weights from overfitting.'
   },
   {
     id: 'evaluation',
-    stepNumber: 11,
+    stepNumber: 12,
     title: 'Model Evaluation & ROC Curve',
     subtitle: 'Review confusion matrix & model parameters',
     explanation: 'We predict outcomes on the unseen validation fold. We plot the Confusion Matrix and ROC Curve to calculate accuracy (81.56%) and ROC-AUC (0.8659).',
@@ -128,7 +163,7 @@ export const kaggleSteps = [
   },
   {
     id: 'diagram',
-    stepNumber: 12,
+    stepNumber: 13,
     title: 'Pipeline Diagram',
     subtitle: 'Visualize fitted pipeline nodes',
     explanation: 'We review the visual diagram of our optimal fitted pipeline model, illustrating how inputs pass through engineering, median imputers, preprocessors, and logistic regression.',
@@ -140,7 +175,7 @@ export const kaggleSteps = [
   },
   {
     id: 'odds',
-    stepNumber: 13,
+    stepNumber: 14,
     title: 'Log-Odds Coefficients',
     subtitle: 'Extract weights of model predictors',
     explanation: 'We extract the model coefficients to evaluate the influence of engineered parameters. Female sex and high-class titles increase survival odds, whereas third-class passenger status strongly depresses survival.',
@@ -151,8 +186,19 @@ export const kaggleSteps = [
     isCoefficientsTable: true
   },
   {
+    id: 'submission',
+    stepNumber: 15,
+    title: 'Kaggle Submission',
+    subtitle: 'Generate predictions on test.csv and export CSV',
+    explanation: 'We fit our tuned pipeline on the entire train.csv dataset (all 891 rows) to capture maximum signals. We then run predictions on the unseen test.csv, saving results to submissions/submission_best_classical.csv.',
+    whyItMatters: 'Kaggle evaluates submissions on unseen test cases. Refitting on the full training set maximizes accuracy on Kaggle leaderboard evaluations.',
+    codeSnippet: '# Refit model on full training set and export test predictions\nfinal_pipeline = Pipeline(steps=[\n    ("group_age_imputer", GroupMedianAgeImputer()),\n    ("feature_engineer", TitanicFeatureEngineer()),\n    ("preprocess", preprocessor),\n    ("classifier", LogisticRegression(C=grid_search.best_params_["classifier__C"], max_iter=1000, solver="liblinear", random_state=42))\n])\nfinal_pipeline.fit(X, y)\ntest_preds = final_pipeline.predict(test)\n\nsubmission = pd.DataFrame({\n    "PassengerId": test["passengerid"],\n    "Survived": test_preds\n})\nsubmission.to_csv("submissions/submission_best_classical.csv", index=False)\nprint("✓ submissions/submission_best_classical.csv exported successfully!")',
+    outputSummary: '✓ submissions/submission_best_classical.csv exported successfully! Shape: (418, 2)',
+    keyInsight: 'Always fit on 100% of training data before final submission, as additional data points improve generalizability on the test set.'
+  },
+  {
     id: 'relevance',
-    stepNumber: 14,
+    stepNumber: 16,
     title: 'Economic & Real-World Relevance',
     subtitle: 'Translate machine learning tasks to industry domains',
     explanation: 'We detail how the binary classification pipeline applies directly to real-world industrial tasks like financial credit scoring, insurance risk underwriting, and healthcare triage.',
@@ -163,7 +209,7 @@ export const kaggleSteps = [
   },
   {
     id: 'mindset',
-    stepNumber: 15,
+    stepNumber: 17,
     title: 'Data Science Mindset',
     subtitle: 'A checklist of rigorous analytical steps',
     explanation: 'We review the core values of high-quality data science projects: ask questions, verify data quality, plot distributions, measure realistic performance, and communicate clearly.',
@@ -174,7 +220,7 @@ export const kaggleSteps = [
   },
   {
     id: 'reflection',
-    stepNumber: 16,
+    stepNumber: 18,
     title: 'Final Reflection',
     subtitle: 'Summary of Titanic project learnings',
     explanation: 'We summarize historical learnings. Social structures and class hierarchies directly shaped survival chances on the Titanic, which are captured clearly in demographic variables.',
@@ -183,27 +229,4 @@ export const kaggleSteps = [
     outputSummary: 'Ethical review of machine learning applications.',
     keyInsight: 'Models reflect the historical biases of their training data. Responsible machine learning requires recognizing these structures.'
   },
-  {
-    id: 'predictor',
-    stepNumber: 17,
-    title: 'Sandbox Predictor',
-    subtitle: 'Interactive local predictions dashboard',
-    explanation: 'Test predictions using local passenger inputs. Modify variables in the sandbox below to observe survival probability calculations instantly.',
-    whyItMatters: 'Connecting model parameters to an interactive workspace builds intuitive confidence in coefficients.',
-    codeSnippet: '# Sandbox script to predict custom passenger profiles\nmodel = best_pipeline\ncustom_passengers = pd.DataFrame([\n    {"pclass": 3, "sex": "male", "age": 22.0, "sibsp": 0, "parch": 0, "fare": 7.25, "embarked": "S", "cabin": np.nan, "name": "Single, Mr. Third Class"},\n    {"pclass": 1, "sex": "female", "age": 38.0, "sibsp": 1, "parch": 0, "fare": 71.28, "embarked": "C", "cabin": "C85", "name": "Married, Mrs. First Class"}\n])\npredict_and_print(custom_passengers, model)',
-    outputSummary: 'Single Mr: ~11.6% Survival probability | Married Mrs: ~97.1% Survival probability',
-    keyInsight: 'Predicting individual profiles highlights the non-linear boundaries created by one-hot encoded categories.',
-    isSandboxPredictor: true
-  },
-  {
-    id: 'submission',
-    stepNumber: 18,
-    title: 'Kaggle Submission',
-    subtitle: 'Generate predictions on test.csv and export CSV',
-    explanation: 'We fit our tuned pipeline on the entire train.csv dataset (all 891 rows) to capture maximum signals. We then run predictions on the unseen test.csv, saving results to submissions/submission_best_classical.csv.',
-    whyItMatters: 'Kaggle evaluates submissions on unseen test cases. Refitting on the full training set maximizes accuracy on Kaggle leaderboard evaluations.',
-    codeSnippet: '# Refit model on full training set and export test predictions\nfinal_pipeline = Pipeline(steps=[\n    ("group_age_imputer", GroupMedianAgeImputer()),\n    ("feature_engineer", TitanicFeatureEngineer()),\n    ("preprocess", preprocessor),\n    ("classifier", LogisticRegression(C=grid_search.best_params_["classifier__C"], max_iter=1000, solver="liblinear", random_state=42))\n])\nfinal_pipeline.fit(X, y)\ntest_preds = final_pipeline.predict(test)\n\nsubmission = pd.DataFrame({\n    "PassengerId": test["passengerid"],\n    "Survived": test_preds\n})\nsubmission.to_csv("submissions/submission_best_classical.csv", index=False)\nprint("✓ submissions/submission_best_classical.csv exported successfully!")',
-    outputSummary: '✓ submissions/submission_best_classical.csv exported successfully! Shape: (418, 2)',
-    keyInsight: 'Always fit on 100% of training data before final submission, as additional data points improve generalizability on the test set.'
-  }
 ];

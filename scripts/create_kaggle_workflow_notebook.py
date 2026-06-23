@@ -3,6 +3,7 @@
 scripts/create_kaggle_workflow_notebook.py
 Generates notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb
 """
+
 from pathlib import Path
 import json
 import textwrap
@@ -11,17 +12,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 NOTEBOOKS_DIR.mkdir(exist_ok=True)
 
+
 def clean_source(text):
     dedented = textwrap.dedent(text).strip()
     lines = dedented.splitlines()
     return [line + "\n" for line in lines]
 
+
 def make_md_cell(text):
-    return {
-        "cell_type": "markdown",
-        "metadata": {},
-        "source": clean_source(text)
-    }
+    return {"cell_type": "markdown", "metadata": {}, "source": clean_source(text)}
+
 
 def make_code_cell(text):
     return {
@@ -29,8 +29,9 @@ def make_code_cell(text):
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": clean_source(text)
+        "source": clean_source(text),
     }
+
 
 def main():
     cells = [
@@ -46,14 +47,12 @@ def main():
             Load Data → Clean Data → Explore → Feature Engineer → Custom Imputation → Split → Preprocessing Pipeline → GridSearchCV Model Search → Evaluation & ROC → Odds Coefficients → Predictions
             ```
         """),
-        
         make_md_cell("""
             ## 1. Environment and Library Setup
             
             The notebook uses the standard Python data science stack: NumPy, Pandas, Matplotlib, Seaborn, and Scikit-Learn.
             All package imports (including regular expressions `re` for title parsing and cross-validated searches) are declared in this initial cell to prepare the notebook for running cleanly in local and Colab environments.
         """),
-        
         make_code_cell(r"""
             import os
             import re
@@ -62,17 +61,15 @@ def main():
             import matplotlib.pyplot as plt
             import seaborn as sns
             import plotly.express as px
-            import plotly.graph_objects as go
 
-            from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold
+            from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
             from sklearn.base import BaseEstimator, TransformerMixin
             from sklearn.pipeline import Pipeline
             from sklearn.compose import ColumnTransformer
             from sklearn.impute import SimpleImputer
             from sklearn.preprocessing import StandardScaler, OneHotEncoder
             from sklearn.linear_model import LogisticRegression
-            from sklearn.ensemble import RandomForestClassifier
-            from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve, precision_score, recall_score, f1_score, auc
+            from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve
             from sklearn import set_config
 
             set_config(display="diagram")
@@ -83,16 +80,12 @@ def main():
             filename_prefix = "kaggle_"
             print("✓ Step 1: Libraries and environment successfully set up!")
         """),
-        
         make_md_cell("""
             ## 2. Dataset Ingestion
             
             We load our raw dataset. For the Kaggle Competition, we load `train.csv` and `test.csv`.
         """),
-        
         make_code_cell(r"""
-            import os
-
             possible_paths = [
                 "../kaggle/",
                 "./kaggle/",
@@ -134,13 +127,11 @@ def main():
             print("Test Shape:", test.shape)
             df.info()
         """),
-        
         make_md_cell("""
             ## 3. Column Cleaning and Data Dictionary
             
             Column names are normalized to lowercase and punctuation is simplified. Post-disaster fields (like `boat`, `body`, `home.dest`) are identified for removal to prevent **data leakage**.
         """),
-        
         make_code_cell(r"""
             df = df.copy()
             df.columns = (
@@ -173,13 +164,11 @@ def main():
             display(pd.DataFrame({"cleaned_columns": df.columns}))
             display(df.head())
         """),
-        
         make_md_cell("""
             ## 4. Missing Value Analysis
             
             Clean data is the foundation of reliable modeling. Missing values across key features are calculated and audited before visual modeling.
         """),
-        
         make_code_cell(r"""
             missing = (
                 pd.DataFrame({
@@ -191,14 +180,12 @@ def main():
             )
             display(missing)
         """),
-        
         make_md_cell("""
             ## 5. Exploratory Data Analysis (EDA)
             
             We conduct a complete, deep-dive EDA including the full gallery of 14 static plots and 4 interactive Plotly charts.
             This gives a thorough visual understanding of demographic splits, distributions, port impacts, and high-dimensional correlations.
         """),
-        
         make_code_cell(r"""
             # 1. Survival Count Plot
             plt.figure(figsize=(6, 4))
@@ -213,7 +200,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_count.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 2. Sex Distribution
             plt.figure(figsize=(6, 4))
@@ -225,7 +211,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}sex_count.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 3. Survival Rate by Gender
             plt.figure(figsize=(6, 4))
@@ -237,7 +222,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_rate_by_sex.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 4. Survival Rate by Passenger Class
             plt.figure(figsize=(6, 4))
@@ -251,7 +235,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_rate_by_class.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 5. Survival Rate Heatmap by Gender and Class
             plt.figure(figsize=(6, 4))
@@ -266,7 +249,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_by_sex_class_heatmap.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 5.5. Survival Rate Barplot by Gender and Class
             plt.figure(figsize=(8, 4.8))
@@ -279,7 +261,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}survival_by_gender_class.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-
         make_code_cell(r"""
             # 6. Age Distribution by Survival Density
             plt.figure(figsize=(7, 4.5))
@@ -293,7 +274,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}age_distribution_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 6.5. Passenger Age Distribution Histogram by Outcome
             plt.figure(figsize=(8, 4.8))
@@ -308,7 +288,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}age_distribution.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-
         make_code_cell(r"""
             # 7. Survival Rate by Age Group
             plt.figure(figsize=(8, 4.5))
@@ -327,7 +306,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}age_group_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 8. Fare Distribution Histogram
             plt.figure(figsize=(7, 4.5))
@@ -341,7 +319,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}fare_distribution.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 9. Fare Boxplot (Identifying Outliers)
             plt.figure(figsize=(6, 4))
@@ -355,7 +332,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}fare_outlier_boxplot.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 10. Age vs Fare Scatter Plot
             plt.figure(figsize=(8, 5))
@@ -371,7 +347,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}age_fare_scatter.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 11. Survival Rate by Family Size
             plt.figure(figsize=(7, 4))
@@ -385,7 +360,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}family_size_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 12. Embarked Location Survival and Death Distribution
             plt.figure(figsize=(7, 4.5))
@@ -401,7 +375,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}embarked_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 13. Survival Rate by Cabin Availability
             plt.figure(figsize=(6, 4))
@@ -415,7 +388,6 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}cabin_known_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_code_cell(r"""
             # 14. Title Groupings vs Survival
             plt.figure(figsize=(7, 4.5))
@@ -440,12 +412,10 @@ def main():
             plt.savefig(os.path.join(export_path, f"{filename_prefix}title_survival.png"), dpi=150, bbox_inches="tight")
             plt.show()
         """),
-        
         make_md_cell("""
             ### Interactive Exploratory Plots
             Below we render four dynamic Plotly visualizations. These plots allow interactive panning, zooming, and hover annotations. Note that interactive Plotly plots require a running Python kernel (such as in Jupyter Notebook or Google Colab) to render dynamically.
         """),
-        
         make_code_cell(r"""
             # 1. Interactive Sunburst (Ticket Class -> Sex -> Survival Status)
             vis_df = df.copy()
@@ -462,7 +432,6 @@ def main():
             fig_sunburst.update_layout(margin=dict(t=40, l=0, r=0, b=0))
             fig_sunburst.show()
         """),
-        
         make_code_cell(r"""
             # 2. Interactive Scatter (Age vs. Fare)
             vis_df = df.copy()
@@ -482,7 +451,6 @@ def main():
             fig_scatter.update_layout(xaxis_title="Age (Years)", yaxis_title="Fare (GBP, Log Scale)")
             fig_scatter.show()
         """),
-        
         make_code_cell(r"""
             # 3. Interactive 3D Scatter (Age vs. Fare vs. Pclass)
             vis_df = df.copy()
@@ -501,7 +469,6 @@ def main():
             )
             fig_3d.show()
         """),
-        
         make_code_cell(r"""
             # 4. Interactive Parallel Categories Flow
             vis_df = df.copy()
@@ -517,14 +484,12 @@ def main():
             )
             fig_parcat.show()
         """),
-        
         make_md_cell("""
             ## 6. Feature Engineering Transformer
             
             We build a custom Scikit-Learn transformer class `TitanicFeatureEngineer` to perform feature engineering.
             This creates family features (`family_size`, `is_alone`), extracts passenger name prefixes to create a `title` group, and flags cabin indicators (`has_cabin`) while cleanly dropping leakage and string identifiers.
         """),
-        
         make_code_cell(r"""
             class TitanicFeatureEngineer(BaseEstimator, TransformerMixin):
                 def fit(self, X, y=None):
@@ -557,13 +522,11 @@ def main():
                     leakage_or_raw = ["passengerid", "name", "ticket", "cabin", "boat", "body", "home_dest"]
                     return X_out.drop(columns=[col for col in leakage_or_raw if col in X_out.columns])
         """),
-        
         make_md_cell("""
             ## 7. Custom Imputation (Leakage-Safe)
             
             Simple global median imputation ignores passenger demographics. We create a custom `GroupMedianAgeImputer` class that computes median age grouped by passenger class and gender, fitting only on the training folds during cross-validation to prevent data leakage.
         """),
-        
         make_code_cell(r"""
             class GroupMedianAgeImputer(BaseEstimator, TransformerMixin):
                 def __init__(self, age_col="age", group_cols=("pclass", "sex")):
@@ -589,13 +552,11 @@ def main():
                     X_out[self.age_col] = X_out.apply(fill_age, axis=1)
                     return X_out
         """),
-        
         make_md_cell("""
             ## 8. Train/Test Split
             
             We perform a stratified 80-20 partition (`stratify=y`) to split feature attributes and survival targets.
         """),
-        
         make_code_cell(r"""
             features = ["pclass", "sex", "age", "sibsp", "parch", "fare", "embarked", "cabin", "name"]
             X = df.drop(columns=["survived"])
@@ -606,13 +567,11 @@ def main():
             )
             print("Train shape:", X_train.shape, "| Test shape:", X_test.shape)
         """),
-        
         make_md_cell("""
             ## 9. Preprocessing Pipeline
             
             We build a `ColumnTransformer` preprocessing pipeline mapping standard numeric and categorical features.
         """),
-        
         make_code_cell(r"""
             numeric_features = ["age", "sibsp", "parch", "fare", "family_size"]
             categorical_features = ["pclass", "sex", "embarked", "is_alone", "title", "has_cabin"]
@@ -632,13 +591,11 @@ def main():
                 ("cat", categorical_pipeline, categorical_features)
             ])
         """),
-        
         make_md_cell("""
             ## 10. GridSearchCV Model Search
             
             We set up a grid search searching over Logistic Regression hyper-parameters to find the optimal C regularization parameter.
         """),
-        
         make_code_cell(r"""
             base_pipeline = Pipeline(steps=[
                 ("group_age_imputer", GroupMedianAgeImputer()),
@@ -665,13 +622,11 @@ def main():
             print("Best params:", grid_search.best_params_)
             print(f"Best cross-validation accuracy: {grid_search.best_score_:.4f}")
         """),
-        
         make_md_cell("""
             ## 11. Model Evaluation & ROC Curve
             
             We predict outcomes on the holdout test set using the chosen optimal pipeline and generate accuracy metrics, classification reports, and the ROC curve.
         """),
-        
         make_code_cell(r"""
             best_pipeline = grid_search.best_estimator_
             y_pred = best_pipeline.predict(X_test)
@@ -715,23 +670,19 @@ def main():
                     outcome = "SURVIVES" if prediction[idx] == 1 else "NOT SURVIVED"
                     print(f"Passenger: {row['name']:<30} | Class: {row['pclass']} | Sex: {row['sex']:<6} | Probability: {probability[idx]:.4f} ({probability[idx]*100:.1f}%) | Prediction: {outcome}")
         """),
-        
         make_md_cell("""
             ## 12. Pipeline Diagram
             
             Displaying the Scikit-Learn visual block diagram of the optimal pipeline.
         """),
-        
         make_code_cell(r"""
             best_pipeline
         """),
-        
         make_md_cell("""
             ## 13. Log-Odds Coefficients
             
             Displaying feature importances or logistic regression log-odds parameters mapping the direction of influence.
         """),
-        
         make_code_cell(r"""
             preprocess_step = best_pipeline.named_steps["preprocess"]
             encoded_feature_names = preprocess_step.get_feature_names_out()
@@ -770,13 +721,11 @@ def main():
                 
                 display(interpretation)
         """),
-        
         make_md_cell("""
             ## 14. Economic and Real-World Relevance
             
             The Titanic classification problem serves as a proxy for safety engineering, risk profiling, and policy analysis in maritime operations, insurance, and medicine.
         """),
-        
         make_md_cell("""
             ## 15. Data Science Mindset
             
@@ -784,20 +733,17 @@ def main():
             - **Be leakage-aware:** Always impute and engineer features within the pipeline cross-validation folds.
             - **Be visual:** A single well-crafted plot carries more weight than dozens of printed statistics tables.
         """),
-        
         make_md_cell("""
             ## 16. Final Reflection
             
             Data science is more than just parameter tuning. It is about understanding the human story beneath the rows, cleaning responsibly, and validating results against realistic baselines.
         """),
-        
         make_md_cell("""
             ## 17. Passenger Predictions & Custom Colab Test Sandbox
             
             Evaluating custom passenger scenarios matching the Jupyter notebook showcase profiles.
             You can also copy the custom passenger Python script from the companion website sandbox and paste it into the code cell below to run predictions live!
         """),
-        
         make_code_cell(r"""
             model = best_pipeline
 
@@ -811,57 +757,70 @@ def main():
             print("=" * 60)
             predict_and_print(custom_passengers, model)
         """),
-        
         make_md_cell("""
             ## 18. Hands-On Exercise: Exploring Statistics in the Titanic Dataset
             
             This section contains the hands-on statistics exercises matching your classroom curriculum for June 18, 2026.
             
-            ### Part 2: Variance & Correlation
-            We calculate the variance and standard deviation of passenger Fares, and visualize linear relationships using a correlation heatmap of selected features.
+            ### Part 1: Descriptive Statistics
+            We compute the mean and median of Age and Fare, calculate the overall survival rate, and plot the passenger age distribution.
         """),
-        
         make_code_cell(r"""
-            # Calculate variance and standard deviation of Fare
-            fare_var = df["fare"].var()
-            fare_std = df["fare"].std()
-            print(f"Fare Variance: {fare_var:.4f}")
-            print(f"Fare Standard Deviation: {fare_std:.4f}")
+            # Part 1: Descriptive statistics
+            age_mean = df["age"].mean()
+            age_median = df["age"].median()
+            fare_mean = df["fare"].mean()
+            fare_median = df["fare"].median()
+            survival_rate = df["survived"].mean()
 
-            # Create correlation heatmap for selected features
-            plt.figure(figsize=(6, 4))
-            selected_features = df[["age", "fare", "pclass", "survived"]].copy()
-            # Map sex to numeric for correlation
-            selected_features["sex_code"] = df["sex"].map({"male": 0, "female": 1})
-            sns.heatmap(selected_features.corr(), annot=True, cmap="coolwarm", fmt=".2f", vmin=-1, vmax=1)
-            plt.title("Correlation Heatmap (Selected Features)")
-            
+            print("=== Descriptive Statistics ===")
+            print(f"Mean Age       : {age_mean:.2f}")
+            print(f"Median Age     : {age_median:.2f}")
+            print(f"Mean Fare      : {fare_mean:.2f}")
+            print(f"Median Fare    : {fare_median:.2f}")
+            print(f"Survival Rate  : {survival_rate:.2%}")
+
             export_path = "../public/assets/plots/" if os.path.exists("../public/") else "./plots/"
             os.makedirs(export_path, exist_ok=True)
-            plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_correlation.png"), bbox_inches="tight", dpi=150)
+
+            plt.figure(figsize=(7, 4.5))
+            sns.histplot(data=df, x="age", bins=30, kde=True, color="#2563eb")
+            plt.title("Passenger Age Distribution")
+            plt.xlabel("Age")
+            plt.ylabel("Passenger Count")
+            plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_age_histogram.png"), bbox_inches="tight", dpi=150)
             plt.show()
         """),
-        
+        make_md_cell("""
+            ### Part 2: Variance & Correlation
+            We calculate the variance and standard deviation of passenger Fares, then create one consolidated correlation heatmap for selected survival-related features.
+        """),
         make_code_cell(r"""
-            # Create correlation heatmap for raw and engineered demographic features (correlation_heatmap.png)
-            plt.figure(figsize=(8, 6))
+            # Part 2: variance and one consolidated correlation heatmap
+            fare_var = df["fare"].var()
+            fare_std = df["fare"].std()
+            print("=== Fare Dispersion ===")
+            print(f"Fare Variance          : {fare_var:.4f}")
+            print(f"Fare Standard Deviation: {fare_std:.4f}")
+
             correlation_source = df[["age", "fare", "sibsp", "parch", "pclass", "survived"]].copy()
             correlation_source["sex_female"] = (df["sex"] == "female").astype(int)
             correlation_source["family_size"] = df["sibsp"] + df["parch"] + 1
             correlation = correlation_source.corr(numeric_only=True)
 
-            sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="vlag")
-            plt.title("Correlation Table Heatmap")
+            plt.figure(figsize=(8, 6))
+            sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="coolwarm", vmin=-1, vmax=1)
+            plt.title("Correlation Heatmap: Titanic Survival Features")
 
+            # Save under both names so existing reports/web assets remain compatible while showing only one heatmap here.
+            plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_correlation.png"), bbox_inches="tight", dpi=150)
             plt.savefig(os.path.join(export_path, f"{filename_prefix}correlation_heatmap.png"), bbox_inches="tight", dpi=150)
             plt.show()
         """),
-
         make_md_cell("""
             ### Part 3: Hypothesis Testing
             We run a two-sample independent Student's t-test to determine if the difference in survival rates between women and men is statistically significant.
         """),
-        
         make_code_cell(r"""
             from scipy.stats import ttest_ind
 
@@ -879,15 +838,11 @@ def main():
             else:
                 print("\nInterpretation: Since the p-value is greater than 0.05, the difference is NOT statistically significant.")
         """),
-        
         make_md_cell("""
             ### Part 4: Regression
             We construct a simple Logistic Regression classifier using Age, Fare, and Pclass to estimate the survival probability of a hypothetical passenger.
         """),
-        
         make_code_cell(r"""
-            from sklearn.linear_model import LogisticRegression
-
             # Prepare data
             X_simple = df[["age", "fare", "pclass"]].copy()
             y_simple = df["survived"]
@@ -909,7 +864,6 @@ def main():
             print(f"Survival Probability: {pred_prob*100:.2f}%")
             print(f"Prediction Outcome : {'SURVIVES' if pred_survival == 1 else 'DECEASED'}")
         """),
-        
         make_md_cell("""
             ### Part 5: Classroom Reflection & Discussion
             
@@ -922,13 +876,11 @@ def main():
             3. **How does regression connect statistics to ML prediction?**
                Regression transforms descriptive parameters into a linear equation that maps attributes to log-odds ratios, showing how statistical coefficients parameterize classification models.
         """),
-        
         make_md_cell("""
             ## 19. Export Kaggle Submission
             
             Lastly, we fit our best parameter pipeline on the *complete* training dataset (to maximize model exposure) and generate predictions on Kaggle's unseen `test` profiles.
         """),
-        
         make_code_cell(r"""
             # Fit the optimal pipeline on the full training set (X, y)
             final_pipeline = Pipeline(steps=[
@@ -962,7 +914,6 @@ def main():
             print(f"✓ Saved Kaggle predictions to: {sub_path}")
             print(submission.head(10))
         """),
-
         make_md_cell("""
             # Professor Questions and Evidence
 
@@ -978,7 +929,6 @@ def main():
             ## Assignment Evidence Generated from Code
             The next cell runs the shared evidence generator. Exact professor questions and editable response scaffolds are maintained in `docs/` and `reports/` rather than answered here.
         """),
-
         make_code_cell("""
             # Generate and inspect assignment evidence; values are not pasted manually.
             import importlib.util
@@ -1013,22 +963,26 @@ def main():
                 print('Evidence tables: reports/tables/')
                 print('Evidence figures: reports/figures/')
                 print('Evidence metrics: reports/metrics/')
-        """)
+        """),
     ]
-    
+
     for index, cell in enumerate(cells):
         cell["id"] = f"cell-{index:03d}"
 
     notebook = {
         "cells": cells,
         "metadata": {
-            "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
-            "language_info": {"name": "python", "pygments_lexer": "ipython3"}
+            "kernelspec": {
+                "display_name": "Python 3",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {"name": "python", "pygments_lexer": "ipython3"},
         },
         "nbformat": 4,
-        "nbformat_minor": 5
+        "nbformat_minor": 5,
     }
-    
+
     nb_name = "00_Titanic_Kaggle_Main_Workflow.ipynb"
     nb_path = NOTEBOOKS_DIR / nb_name
     if nb_path.exists():
@@ -1036,12 +990,18 @@ def main():
     with open(nb_path, "w", encoding="utf-8") as f:
         json.dump(notebook, f, indent=2, ensure_ascii=False)
 
-    code_export = "\n\n# %%\n\n".join(
-        "".join(cell["source"]) for cell in cells if cell["cell_type"] == "code"
-    ) + "\n"
+    code_export = (
+        "\n\n# %%\n\n".join(
+            "".join(cell["source"]) for cell in cells if cell["cell_type"] == "code"
+        )
+        + "\n"
+    )
     for suffix in (".py", ".txt"):
-        (NOTEBOOKS_DIR / f"00_Titanic_Kaggle_Main_Workflow{suffix}").write_text(code_export, encoding="utf-8")
+        (NOTEBOOKS_DIR / f"00_Titanic_Kaggle_Main_Workflow{suffix}").write_text(
+            code_export, encoding="utf-8"
+        )
     print(f"✓ Generated {nb_name} and synchronized .py/.txt code exports")
+
 
 if __name__ == "__main__":
     main()

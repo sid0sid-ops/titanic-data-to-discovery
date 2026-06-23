@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { preparePassenger, predictPassenger, buildColabPassengerCode } from './utils/titanicPredictor.js';
 import { links, validatedResult } from './data/projectContent.js';
 import { kaggleSteps } from './data/kaggleSteps.js';
 import { notebookSteps } from './data/notebookSteps.js';
 import { tfdfSteps } from './data/tfdfSteps.js';
+import AssignmentPage from './components/AssignmentPage.jsx';
 import PillWorkflowTabs from './components/PillWorkflowTabs.jsx';
 
 export default function App() {
@@ -20,12 +20,12 @@ export default function App() {
   const sectionIds = useMemo(() => {
     if (activeWorkflow === 'kaggle') {
       if (activeKaggleSubTab === 'main') {
-        return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'relevance', 'mindset', 'reflection', 'predictor', 'submission'];
+        return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'statistics', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'submission', 'relevance', 'mindset', 'reflection'];
       } else {
         return ['setup', 'loading', 'features', 'training', 'tuning'];
       }
     } else {
-      return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'relevance', 'mindset', 'reflection', 'predictor'];
+      return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'relevance', 'mindset', 'reflection'];
     }
   }, [activeWorkflow, activeKaggleSubTab]);
 
@@ -37,19 +37,19 @@ export default function App() {
     { id: 'cleaning', name: '3. Cleaning & Leakage', icon: 'fa-broom' },
     { id: 'missing', name: '4. Missing Values', icon: 'fa-magnifying-glass-chart' },
     { id: 'eda', name: '5. Exploratory Analysis', icon: 'fa-chart-simple' },
-    { id: 'engineering', name: '6. Feature Engineering', icon: 'fa-flask' },
-    { id: 'imputation', name: '7. Custom Imputation', icon: 'fa-user-pen' },
-    { id: 'split', name: '8. Train / Test Split', icon: 'fa-scissors' },
-    { id: 'pipeline', name: '9. Preprocessing Pipeline', icon: 'fa-diagram-project' },
-    { id: 'training', name: '10. GridSearchCV Search', icon: 'fa-gear' },
-    { id: 'evaluation', name: '11. Evaluation & ROC', icon: 'fa-square-poll-vertical' },
-    { id: 'diagram', name: '12. Pipeline Diagram', icon: 'fa-code-branch' },
-    { id: 'odds', name: '13. Log-Odds Coefficients', icon: 'fa-scale-balanced' },
-    { id: 'relevance', name: '14. Economic Relevance', icon: 'fa-handshake' },
-    { id: 'mindset', name: '15. Data Science Mindset', icon: 'fa-brain' },
-    { id: 'reflection', name: '16. Final Reflection', icon: 'fa-lightbulb' },
-    { id: 'predictor', name: '17. Sandbox Predictor', icon: 'fa-circle-play' },
-    { id: 'submission', name: '18. Kaggle Submission', icon: 'fa-circle-check' },
+    { id: 'statistics', name: '6. Statistics Exercise', icon: 'fa-square-root-variable' },
+    { id: 'engineering', name: '7. Feature Engineering', icon: 'fa-flask' },
+    { id: 'imputation', name: '8. Custom Imputation', icon: 'fa-user-pen' },
+    { id: 'split', name: '9. Train / Test Split', icon: 'fa-scissors' },
+    { id: 'pipeline', name: '10. Preprocessing Pipeline', icon: 'fa-diagram-project' },
+    { id: 'training', name: '11. GridSearchCV Search', icon: 'fa-gear' },
+    { id: 'evaluation', name: '12. Evaluation & ROC', icon: 'fa-square-poll-vertical' },
+    { id: 'diagram', name: '13. Pipeline Diagram', icon: 'fa-code-branch' },
+    { id: 'odds', name: '14. Log-Odds Coefficients', icon: 'fa-scale-balanced' },
+    { id: 'submission', name: '15. Kaggle Submission', icon: 'fa-circle-check' },
+    { id: 'relevance', name: '16. Economic Relevance', icon: 'fa-handshake' },
+    { id: 'mindset', name: '17. Data Science Mindset', icon: 'fa-brain' },
+    { id: 'reflection', name: '18. Final Reflection', icon: 'fa-lightbulb' },
   ];
 
   const tfdfSidebarItems = [
@@ -78,7 +78,6 @@ export default function App() {
     { id: 'relevance', name: '14. Economic Relevance', icon: 'fa-handshake' },
     { id: 'mindset', name: '15. Data Science Mindset', icon: 'fa-brain' },
     { id: 'reflection', name: '16. Final Reflection', icon: 'fa-lightbulb' },
-    { id: 'predictor', name: '17. Sandbox Predictor', icon: 'fa-circle-play' },
   ];
 
   const activeSidebarItems = useMemo(() => {
@@ -95,9 +94,19 @@ export default function App() {
 
   // Comparison Modal state
   const [showComparisonModal, setShowComparisonModal] = useState(false);
-  const [comparisonTab, setComparisonTab] = useState('datasets');
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const openAssignment = () => {
+    setShowAssignmentModal(true);
+  };
+
+  const closeAssignment = () => {
+    setShowAssignmentModal(false);
+    if (window.location.hash === '#assignment') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
 
   // Refs and handlers to scroll EDA plots tabs horizontally
   const plotTabsRef = useRef(null);
@@ -113,24 +122,7 @@ export default function App() {
     }
   };
 
-  // Predictor Form Inputs (OpenML Sandbox)
-  const [input, setInput] = useState({
-    pclass: 3,
-    sex: 'male',
-    age: 25,
-    sibsp: 0,
-    parch: 0,
-    fare: 7.25,
-    embarked: 'S',
-    title: 'Mr',
-    has_cabin: false,
-  });
-
   const [model, setModel] = useState(null);
-  const [modelError, setModelError] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
 
   // Model comparisons loaded dynamically
   const [modelComparisons, setModelComparisons] = useState([]);
@@ -144,7 +136,7 @@ export default function App() {
         return response.json();
       })
       .then((data) => setModel(data))
-      .catch((err) => setModelError(err.message));
+      .catch(() => setModel(null));
 
     fetch(`${import.meta.env.BASE_URL}assets/data/model_comparison.json`)
       .then((res) => {
@@ -169,6 +161,18 @@ export default function App() {
     // Scroll page to top when changing workflow tabs
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeWorkflow, activeKaggleSubTab]);
+
+  useEffect(() => {
+    const syncAssignmentHash = () => {
+      if (window.location.hash === '#assignment') {
+        setShowAssignmentModal(true);
+      }
+    };
+
+    syncAssignmentHash();
+    window.addEventListener('hashchange', syncAssignmentHash);
+    return () => window.removeEventListener('hashchange', syncAssignmentHash);
+  }, []);
 
   // IntersectionObserver scroll tracker
   useEffect(() => {
@@ -222,32 +226,6 @@ export default function App() {
       };
     }
   }, [activeWorkflow, activeKaggleSubTab]);
-
-  // Compute live prediction in JS
-  const liveResult = useMemo(() => {
-    if (!model) return null;
-    return predictPassenger(model, input);
-  }, [model, input]);
-
-  const updateForm = (field, value) => {
-    setInput(prev => ({ ...prev, [field]: value }));
-  };
-
-  const triggerToast = (msg) => {
-    setToastMessage(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2000);
-  };
-
-  const copyPythonCode = async () => {
-    const code = buildColabPassengerCode(input);
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      triggerToast('Copied Colab Python script to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   // Scroll smoothly to section
   const handleScrollTo = (id) => {
@@ -370,17 +348,20 @@ export default function App() {
     return (
       <div className="cell-output" style={{ maxHeight: 'none', backgroundColor: '#ffffff', marginTop: '20px' }}>
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '12px' }}>
-          <i className="fa-solid fa-cubes"></i> Scikit-Learn Interactive Diagram (Hover blocks for parameters)
+          <i className="fa-solid fa-cubes"></i> Scikit-Learn Pipeline Diagram from 00_Titanic_Kaggle_Main_Workflow.ipynb
         </div>
         
         <div className="pipeline-diagram">
           <div className="pipeline-step">
             <div className="pipeline-node">
-              <div className="node-type">Step 1: Custom Group Imputer</div>
+              <div className="node-type">Pipeline Step 1</div>
               <div className="node-name">group_age_imputer: GroupMedianAgeImputer</div>
-              <div className="node-details">
-                Calculates median ages grouped by passenger class (pclass) and gender (sex) to perform demographic-specific imputation.
-              </div>
+              <details className="node-details">
+                <summary>Parameters</summary>
+                <div><code>age_col="age"</code></div>
+                <div><code>group_cols=("pclass", "sex")</code></div>
+                <div>Fills missing ages with fitted group medians, falling back to the global median.</div>
+              </details>
             </div>
           </div>
           
@@ -390,11 +371,13 @@ export default function App() {
           
           <div className="pipeline-step">
             <div className="pipeline-node">
-              <div className="node-type">Step 2: Feature Engineering</div>
+              <div className="node-type">Pipeline Step 2</div>
               <div className="node-name">feature_engineer: TitanicFeatureEngineer</div>
-              <div className="node-details">
-                Engineers 'family_size', 'is_alone', 'has_cabin', and parses names for 'title' mapping (Mr, Mrs, Miss, Master, Rare). Safely drops raw string leakage variables.
-              </div>
+              <details className="node-details">
+                <summary>Transformations</summary>
+                <div>Creates <code>family_size</code>, <code>is_alone</code>, <code>title</code>, and <code>has_cabin</code>.</div>
+                <div>Drops raw/leakage columns when present: <code>passengerid</code>, <code>name</code>, <code>ticket</code>, <code>cabin</code>, <code>boat</code>, <code>body</code>, <code>home_dest</code>.</div>
+              </details>
             </div>
           </div>
           
@@ -404,11 +387,13 @@ export default function App() {
           
           <div className="pipeline-step" style={{ maxWidth: '640px' }}>
             <div className="pipeline-node" style={{ backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }}>
-              <div className="node-type" style={{ color: 'var(--color-primary)' }}>Step 3: Column Partitioning</div>
+              <div className="node-type" style={{ color: 'var(--color-primary)' }}>Pipeline Step 3</div>
               <div className="node-name">preprocess: ColumnTransformer</div>
-              <div className="node-details">
-                Routes columns dynamically to numeric or categorical sub-pipelines based on data types.
-              </div>
+              <details className="node-details">
+                <summary>Transformer branches</summary>
+                <div><code>num</code>: numeric pipeline over age, sibsp, parch, fare, family_size.</div>
+                <div><code>cat</code>: categorical pipeline over pclass, sex, embarked, is_alone, title, has_cabin.</div>
+              </details>
             </div>
             
             <div className="pipeline-split-container">
@@ -462,11 +447,15 @@ export default function App() {
           
           <div className="pipeline-step">
             <div className="pipeline-node" style={{ backgroundColor: '#e0f2fe', borderColor: '#7dd3fc' }}>
-              <div className="node-type" style={{ color: '#0369a1' }}>Step 4: Optimal Estimator Classifier</div>
-              <div className="node-name">classifier: LogisticRegression</div>
-              <div className="node-details">
-                Optimal hyperparameter C selected via GridSearchCV. Out-performs Random Forest estimators in CV score.
-              </div>
+              <div className="node-type" style={{ color: '#0369a1' }}>Pipeline Step 4</div>
+              <div className="node-name">classifier: LogisticRegression(C=1.0)</div>
+              <details className="node-details">
+                <summary>Fitted estimator</summary>
+                <div><code>max_iter=1000</code></div>
+                <div><code>solver="liblinear"</code></div>
+                <div><code>random_state=42</code></div>
+                <div><code>C=1.0</code> selected by GridSearchCV from <code>[0.1, 1.0, 10.0]</code>.</div>
+              </details>
             </div>
           </div>
         </div>
@@ -520,244 +509,6 @@ export default function App() {
             )}
           </tbody>
         </table>
-      </div>
-    );
-  };
-
-  const renderSandboxPredictor = () => {
-    return (
-      <div className="sandbox-card" style={{ marginTop: '20px', padding: '24px', backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-md)' }}>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14.5px', marginBottom: '24px' }}>
-          Test how the notebook's trained model parameters calculate predictions in real-time. Modify the passenger attributes below to see the local JS log-odds inference instantly.
-        </p>
-
-        {/* Example Predictions Grid */}
-        <div style={{ marginBottom: '32px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '12px' }}>
-            Jupyter Notebook Example Scenarios
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff' }}>
-              <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '4px' }}>Young Third-Class Male</strong>
-              <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Not Survived (~11.6%)</span>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                High risk group. Negative coefficients for male sex, Mr title, and class 3 status heavily depress survival odds.
-              </p>
-              <button className="btn btn-secondary btn-sm" onClick={() => {
-                setInput({ pclass: 3, sex: 'male', age: 22, sibsp: 0, parch: 0, fare: 7.25, embarked: 'S', title: 'Mr', has_cabin: false });
-                triggerToast('Loaded Young Third-Class Male!');
-              }} style={{ marginTop: '12px', width: '100%', justifyContent: 'center' }}>
-                Load Scenario
-              </button>
-            </div>
-
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff' }}>
-              <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '4px' }}>First-Class Female</strong>
-              <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-success)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Survived (~97.1%)</span>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                High survival rate. Positive coefficients for has_cabin, Mrs title, and female sex increase survival odds.
-              </p>
-              <button className="btn btn-secondary btn-sm" onClick={() => {
-                setInput({ pclass: 1, sex: 'female', age: 38, sibsp: 1, parch: 0, fare: 71.28, embarked: 'C', title: 'Mrs', has_cabin: true });
-                triggerToast('Loaded First-Class Female!');
-              }} style={{ marginTop: '12px', width: '100%', justifyContent: 'center' }}>
-                Load Scenario
-              </button>
-            </div>
-
-            <div style={{ border: '1px solid var(--border-color)', padding: '16px', borderRadius: '8px', backgroundColor: '#ffffff' }}>
-              <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '4px' }}>Child (Second-Class Male)</strong>
-              <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-success)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px' }}>Survived (~84.2%)</span>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                Young age and child 'Master' title features offset the negative coefficient for male gender in model predictions.
-              </p>
-              <button className="btn btn-secondary btn-sm" onClick={() => {
-                setInput({ pclass: 2, sex: 'male', age: 6, sibsp: 1, parch: 1, fare: 26.00, embarked: 'S', title: 'Master', has_cabin: false });
-                triggerToast('Loaded Child Scenario!');
-              }} style={{ marginTop: '12px', width: '100%', justifyContent: 'center' }}>
-                Load Scenario
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {modelError && (
-          <div style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid var(--color-danger)', padding: '12px', color: 'var(--color-danger)', borderRadius: '6px', fontSize: '13px', marginBottom: '20px' }}>
-            ⚠️ Error loading model file: {modelError}. Replicating demo estimates.
-          </div>
-        )}
-
-        <div className="sandbox-grid">
-          {/* Inputs Column */}
-          <div className="sandbox-form-col">
-            <div className="form-group">
-              <label>Passenger Class</label>
-              <select 
-                className="form-control"
-                value={input.pclass}
-                onChange={(e) => updateForm('pclass', Number(e.target.value))}
-              >
-                <option value={1}>1st Class (Upper Deck)</option>
-                <option value={2}>2nd Class (Middle Deck)</option>
-                <option value={3}>3rd Class (Lower Deck)</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Sex</label>
-              <select 
-                className="form-control"
-                value={input.sex}
-                onChange={(e) => updateForm('sex', e.target.value)}
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Age: {input.age} years</label>
-              <div className="range-wrap">
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="80" 
-                  className="form-control"
-                  value={input.age} 
-                  onChange={(e) => updateForm('age', Number(e.target.value))}
-                />
-                <span className="range-val">{input.age}</span>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Fare (Ticket Price): ${input.fare.toFixed(2)}</label>
-              <div className="range-wrap">
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="300" 
-                  step="0.5"
-                  className="form-control"
-                  value={input.fare} 
-                  onChange={(e) => updateForm('fare', Number(e.target.value))}
-                />
-                <span className="range-val">${input.fare.toFixed(0)}</span>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Name Title Category</label>
-              <select 
-                className="form-control"
-                value={input.title}
-                onChange={(e) => updateForm('title', e.target.value)}
-              >
-                <option value="Mr">Mr.</option>
-                <option value="Mrs">Mrs.</option>
-                <option value="Miss">Miss.</option>
-                <option value="Master">Master. (Male child)</option>
-                <option value="Rare">Rare Title (Dr, Rev, Officer)</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Port of Embarkation</label>
-              <select 
-                className="form-control"
-                value={input.embarked}
-                onChange={(e) => updateForm('embarked', e.target.value)}
-              >
-                <option value="C">Cherbourg</option>
-                <option value="Q">Queenstown</option>
-                <option value="S">Southampton</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Siblings / Spouses Aboard</label>
-              <input 
-                type="number" 
-                min="0" 
-                max="8" 
-                className="form-control"
-                value={input.sibsp}
-                onChange={(e) => updateForm('sibsp', Number(e.target.value))}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Parents / Children Aboard</label>
-              <input 
-                type="number" 
-                min="0" 
-                max="6" 
-                className="form-control"
-                value={input.parch}
-                onChange={(e) => updateForm('parch', Number(e.target.value))}
-              />
-            </div>
-
-            <div className="checkbox-row">
-              <input 
-                type="checkbox" 
-                id="has_cabin_cb"
-                checked={input.has_cabin}
-                onChange={(e) => updateForm('has_cabin', e.target.checked)}
-              />
-              <label htmlFor="has_cabin_cb" style={{ cursor: 'pointer', fontSize: '13.5px' }}>Cabin is registered in passenger manifest</label>
-            </div>
-          </div>
-
-          {/* Real-time Probability Outputs Column */}
-          <div className="sandbox-result-col">
-            {liveResult ? (
-              <>
-                <span className={`sandbox-result-badge ${liveResult.prediction === 1 ? 'survived' : 'died'}`}>
-                  {liveResult.label}
-                </span>
-                <h2 className={`sandbox-result-percent ${liveResult.prediction === 1 ? 'survived' : 'died'}`}>
-                  {liveResult.probabilityPercent.toFixed(1)}%
-                </h2>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  SURVIVAL PROBABILITY ESTIMATE
-                </span>
-
-                <div className="sandbox-result-bar">
-                  <div 
-                    className="sandbox-result-bar-fill" 
-                    style={{ 
-                      width: `${liveResult.probabilityPercent}%`,
-                      backgroundColor: liveResult.prediction === 1 ? 'var(--color-success)' : 'var(--color-danger)'
-                    }}
-                  />
-                </div>
-
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '20px' }}>
-                  Calculated using the standard sigmoid function: 
-                  <code style={{ display: 'block', margin: '4px 0', fontSize: '12px' }}>P = 1 / (1 + e^-z)</code>
-                  where the log-odds logit <code style={{ fontSize: '12px' }}>z = {liveResult.probability >= 0.5 ? '' : '-'}{Math.abs(Math.log(liveResult.probability / (1 - liveResult.probability))).toFixed(3)}</code>.
-                </p>
-
-                <div className="sandbox-actions">
-                  <button className="btn btn-primary" onClick={copyPythonCode} style={{ width: '100%', justifyContent: 'center' }}>
-                    <i className="fa-solid fa-copy"></i>
-                    <span>{copied ? 'Copied Python script!' : 'Copy Colab Test Script'}</span>
-                  </button>
-                  <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-                    <i className="fa-solid fa-play"></i>
-                    <span>Run Notebook in Colab</span>
-                  </a>
-                </div>
-                <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '12px', lineHeight: '1.4' }}>
-                  💡 <strong>Tip:</strong> Copy the script first, open the notebook in Colab, and paste it into the custom sandbox cell at the very end to run!
-                </p>
-              </>
-            ) : (
-              <p>Loading predictor weights...</p>
-            )}
-          </div>
-        </div>
       </div>
     );
   };
@@ -886,9 +637,6 @@ export default function App() {
         {/* Special Render: Log-Odds Coefficients Table (Step 13) */}
         {step.isCoefficientsTable && renderCoefficientsTable()}
 
-        {/* Special Render: Sandbox Predictor (Step 17) */}
-        {step.isSandboxPredictor && renderSandboxPredictor()}
-
         {/* Special Render: Model Comparison Table (Step 10) */}
         {step.isComparisonTable && renderComparisonTable()}
       </section>
@@ -897,14 +645,6 @@ export default function App() {
 
   return (
     <div>
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="toast">
-          <i className="fa-solid fa-circle-check"></i>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* Navigation Bar */}
       <nav className="navbar">
         <div className="navbar-container">
@@ -915,13 +655,14 @@ export default function App() {
           
           {/* Desktop Nav Actions */}
           <div className="navbar-actions">
-            <button 
-              onClick={() => setShowAssignmentModal(true)} 
+            <a
+              href="#assignment"
+              onClick={openAssignment}
               className="btn btn-assignment btn-sm"
             >
               <i className="fa-solid fa-graduation-cap"></i>
               <span>Assignment</span>
-            </button>
+            </a>
             <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
               <i className="fa-solid fa-play"></i>
               <span>Run in Google Colab</span>
@@ -945,9 +686,10 @@ export default function App() {
         {/* Mobile Dropdown Menu */}
         {menuOpen && (
           <div className="navbar-mobile-menu">
-            <button 
+            <a
+              href="#assignment"
               onClick={() => {
-                setShowAssignmentModal(true);
+                openAssignment();
                 setMenuOpen(false);
               }} 
               className="btn btn-assignment"
@@ -955,7 +697,7 @@ export default function App() {
             >
               <i className="fa-solid fa-graduation-cap"></i>
               <span>Assignment</span>
-            </button>
+            </a>
             <a 
               href={activeLinks.colab} 
               target="_blank" 
@@ -1019,7 +761,7 @@ export default function App() {
           {/* 1. KAGGLE DATASET WORKFLOW (Includes TF-DF Model internally)               */}
           {/* ========================================================================= */}
           {activeWorkflow === 'kaggle' && (
-            <div>
+            <div id="workflow-panel-kaggle">
               {/* Secondary Sub-tabs Toggle for Kaggle Dataset */}
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
                 <div className="pill-tabs-container" style={{ display: 'flex', gap: '4px' }}>
@@ -1037,7 +779,7 @@ export default function App() {
                     style={{ fontSize: '13px', padding: '6px 16px' }}
                   >
                     <i className="fa-solid fa-scale-balanced" style={{ marginRight: '6px' }}></i>
-                    Model Comparison
+                    Model Comparison Module
                   </button>
                 </div>
               </div>
@@ -1050,9 +792,12 @@ export default function App() {
                     <span className="hero-tag">Jupyter Companion • Kaggle Dataset</span>
                     <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
                     <p className="hero-description">
-                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It details data auditing, feature preprocessing, and model evaluations on the standard Kaggle training dataset.
+                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It details data auditing, feature preprocessing, classroom assignments, and model evaluations on the standard Kaggle training dataset.
                     </p>
                     <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
+                      <a href="#assignment" onClick={openAssignment} className="btn btn-assignment">
+                        <i className="fa-solid fa-graduation-cap"></i> Classroom Assignment
+                      </a>
                       <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
                         <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
                       </a>
@@ -1084,7 +829,7 @@ export default function App() {
                 <div>
                   {/* Hero Banner Section */}
                   <section id="setup" className="hero">
-                    <span className="hero-tag">TITANIC MODEL COMPARISON PROJECT</span>
+                    <span className="hero-tag">TITANIC MODEL COMPARISON MODULE</span>
                     <h1>Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, TensorFlow NN</h1>
                     <p className="hero-description">
                       I compared multiple machine learning models on the Titanic Kaggle dataset to observe how different algorithms affect survival prediction. I used Logistic Regression as a simple baseline, Decision Tree and Random Forest as tree-based models, YDF as a modern decision forest framework, XGBoost, LightGBM, and CatBoost as advanced gradient boosting models, and a TensorFlow deep learning neural network.
@@ -1124,7 +869,7 @@ export default function App() {
           {/* 2. OPENML DATASET WORKFLOW (RESTORED EXACT STRUCTURE)                     */}
           {/* ========================================================================= */}
           {activeWorkflow === 'openml' && (
-            <div>
+            <div id="workflow-panel-openml">
               {/* Hero Banner Section */}
               <section id="intro" className="hero">
                 <span className="hero-tag">Jupyter Companion • OpenML Dataset</span>
@@ -1259,156 +1004,69 @@ export default function App() {
             {/* Modal Body */}
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.6' }}>
-                Compare workflow datasets or machine learning algorithms side-by-side. Toggle between the tabs to view the different comparison scopes.
+                Compare how the main Kaggle notebook and the OpenML reference notebook structure the Titanic workflow. Model benchmark tables are kept inside the dedicated Model Comparison Module.
               </p>
 
-              {/* Tab Switcher */}
-              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '16px', paddingBottom: '2px', marginBottom: '12px' }}>
-                <button
-                  onClick={() => setComparisonTab('datasets')}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    background: 'none',
-                    borderBottom: comparisonTab === 'datasets' ? '2.5px solid var(--primary-color)' : '2.5px solid transparent',
-                    fontWeight: comparisonTab === 'datasets' ? '600' : '500',
-                    color: comparisonTab === 'datasets' ? 'var(--primary-color)' : 'var(--text-muted)',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    paddingBottom: '10px'
-                  }}
-                >
-                  <i className="fa-solid fa-database"></i> Dataset Comparison (Same Models, Different Data)
-                </button>
-                <button
-                  onClick={() => setComparisonTab('algorithms')}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    background: 'none',
-                    borderBottom: comparisonTab === 'algorithms' ? '2.5px solid var(--primary-color)' : '2.5px solid transparent',
-                    fontWeight: comparisonTab === 'algorithms' ? '600' : '500',
-                    color: comparisonTab === 'algorithms' ? 'var(--primary-color)' : 'var(--text-muted)',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    paddingBottom: '10px'
-                  }}
-                >
-                  <i className="fa-solid fa-microchip"></i> Algorithm Comparison (Kaggle Dataset)
-                </button>
-              </div>
-
               <div style={{ overflowX: 'auto' }}>
-                {comparisonTab === 'datasets' ? (
-                  <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-color)' }}>
-                        <th style={{ padding: '12px 8px', fontWeight: '600' }}>Pipeline Step / Component</th>
-                        <th style={{ padding: '12px 8px', fontWeight: '600' }}>00: Kaggle Main Workflow</th>
-                        <th style={{ padding: '12px 8px', fontWeight: '600' }}>02: OpenML Reference Workflow</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>1. Setup & Environment</td>
-                        <td style={{ padding: '12px 8px' }}>Seaborn + Plotly Express</td>
-                        <td style={{ padding: '12px 8px' }}>Seaborn (Matplotlib)</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>2. Dataset Ingestion</td>
-                        <td style={{ padding: '12px 8px' }}>Ingests <code>train.csv</code> + <code>test.csv</code> (891 / 418 rows)</td>
-                        <td style={{ padding: '12px 8px' }}>Ingests <code>openml_titanic.csv</code> (1,309 rows)</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>3. Column Cleaning</td>
-                        <td style={{ padding: '12px 8px' }}>Lowercase columns + simplify schema</td>
-                        <td style={{ padding: '12px 8px' }}>Lowercase columns + simplify schema</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>5. Data Visualization</td>
-                        <td style={{ padding: '12px 8px' }}>16 static plots + 4 Plotly interactive charts</td>
-                        <td style={{ padding: '12px 8px' }}>8 static Seaborn plots</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>6. Feature Engineering</td>
-                        <td style={{ padding: '12px 8px' }}>Custom <code>TitanicFeatureEngineer</code></td>
-                        <td style={{ padding: '12px 8px' }}>Custom <code>TitanicFeatureEngineer</code></td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>7. Missing Values</td>
-                        <td style={{ padding: '12px 8px' }}>Custom <code>GroupMedianAgeImputer</code></td>
-                        <td style={{ padding: '12px 8px' }}>Custom <code>GroupMedianAgeImputer</code></td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>10. GridSearchCV</td>
-                        <td style={{ padding: '12px 8px' }}>Tuned Logistic Regression (Best <code>C=1.0</code>)</td>
-                        <td style={{ padding: '12px 8px' }}>Tuned Logistic Regression (Best <code>C=10.0</code>)</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(56, 189, 248, 0.05)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>Model Search Accuracy</td>
-                        <td style={{ padding: '12px 8px', color: 'var(--primary-color)', fontWeight: '600' }}>83.01% (CV)</td>
-                        <td style={{ padding: '12px 8px', color: 'var(--primary-color)', fontWeight: '600' }}>80.42% (CV)</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(16, 185, 129, 0.05)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>Holdout Test Accuracy</td>
-                        <td style={{ padding: '12px 8px', color: 'var(--success-color)', fontWeight: '600' }}>81.56% (Holdout)</td>
-                        <td style={{ padding: '12px 8px', color: 'var(--success-color)', fontWeight: '600' }}>84.35% (Holdout)</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: '600' }}>18. Predictions Export</td>
-                        <td style={{ padding: '12px 8px' }}>Outputs <code>submission_best_classical.csv</code></td>
-                        <td style={{ padding: '12px 8px' }}><em>Not applicable (Local metrics only)</em></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-color)' }}>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>Model Name</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>CV Accuracy</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>Holdout Accuracy</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>Precision</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>Recall</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>F1 Score</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>ROC-AUC</th>
-                        <th style={{ padding: '10px 6px', fontWeight: '600' }}>GridSearchCV Parameters</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {modelComparisons.map((item, idx) => {
-                        const isBest = item.Model.includes('YDF Random Forest');
-                        return (
-                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: isBest ? 'rgba(16, 185, 129, 0.05)' : 'transparent' }}>
-                            <td style={{ padding: '10px 6px' }}>
-                              <strong>{item.Model}</strong>
-                              {isBest && (
-                                <span style={{ fontSize: '9px', backgroundColor: 'var(--success-color)', color: '#fff', padding: '1px 4px', borderRadius: '3px', marginLeft: '4px' }}>
-                                  Best
-                                </span>
-                              )}
-                            </td>
-                            <td style={{ padding: '10px 6px', fontWeight: '600' }}>{(item.CV_Accuracy * 100).toFixed(2)}%</td>
-                            <td style={{ padding: '10px 6px', fontWeight: '600', color: 'var(--primary-color)' }}>{(item.Accuracy * 100).toFixed(2)}%</td>
-                            <td style={{ padding: '10px 6px' }}>{item.Precision.toFixed(4)}</td>
-                            <td style={{ padding: '10px 6px' }}>{item.Recall.toFixed(4)}</td>
-                            <td style={{ padding: '10px 6px' }}>{item.F1.toFixed(4)}</td>
-                            <td style={{ padding: '10px 6px' }}>{item["ROC-AUC"].toFixed(4)}</td>
-                            <td style={{ padding: '10px 6px' }}><code>{item.Best_Params}</code></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
+                <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-color)' }}>
+                      <th style={{ padding: '12px 8px', fontWeight: '600' }}>Pipeline Step / Component</th>
+                      <th style={{ padding: '12px 8px', fontWeight: '600' }}>00: Kaggle Main Workflow</th>
+                      <th style={{ padding: '12px 8px', fontWeight: '600' }}>02: OpenML Reference Workflow</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>1. Setup & Environment</td>
+                      <td style={{ padding: '12px 8px' }}>Kaggle files, pandas, NumPy, Seaborn, Matplotlib, and Scikit-Learn</td>
+                      <td style={{ padding: '12px 8px' }}>OpenML export, pandas, Seaborn, Matplotlib, and Scikit-Learn</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>2. Dataset Ingestion</td>
+                      <td style={{ padding: '12px 8px' }}>Loads <code>train.csv</code> and <code>test.csv</code> for Kaggle submission</td>
+                      <td style={{ padding: '12px 8px' }}>Loads the combined OpenML Titanic reference dataset</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>3. Column Cleaning</td>
+                      <td style={{ padding: '12px 8px' }}>Standardizes names, audits leakage columns, and prepares train/test schemas</td>
+                      <td style={{ padding: '12px 8px' }}>Standardizes names and prepares one local modeling dataset</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>4. Missing Values</td>
+                      <td style={{ padding: '12px 8px' }}>Audits missing values before custom group age imputation</td>
+                      <td style={{ padding: '12px 8px' }}>Audits missing values inside the OpenML reference data</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>5. Data Visualization</td>
+                      <td style={{ padding: '12px 8px' }}>Explores survival, class, gender, fare, age, and related Titanic patterns</td>
+                      <td style={{ padding: '12px 8px' }}>Explores the same concepts using the OpenML schema</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>6. Statistics Exercise</td>
+                      <td style={{ padding: '12px 8px' }}>Includes descriptive statistics, variance, correlation, hypothesis testing, and regression practice</td>
+                      <td style={{ padding: '12px 8px' }}><em>Not included as a separate classroom exercise</em></td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>7. Feature Engineering</td>
+                      <td style={{ padding: '12px 8px' }}>Builds <code>family_size</code>, <code>is_alone</code>, <code>title</code>, and <code>has_cabin</code></td>
+                      <td style={{ padding: '12px 8px' }}>Uses matching engineered Titanic features for reference modeling</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>8. Preprocessing Pipeline</td>
+                      <td style={{ padding: '12px 8px' }}>Runs custom age imputation, feature engineering, column transformation, and Logistic Regression</td>
+                      <td style={{ padding: '12px 8px' }}>Runs the OpenML preprocessing and Logistic Regression reference pipeline</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: '600' }}>9. Output</td>
+                      <td style={{ padding: '12px 8px' }}>Exports a Kaggle submission CSV after validation</td>
+                      <td style={{ padding: '12px 8px' }}>Reports local reference metrics only</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
+
             {/* Modal Footer */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
               <button 
@@ -1440,7 +1098,7 @@ export default function App() {
             zIndex: 9999, 
             padding: '20px' 
           }}
-          onClick={() => setShowAssignmentModal(false)}
+          onClick={closeAssignment}
         >
           <div 
             className="modal-card" 
@@ -1464,7 +1122,7 @@ export default function App() {
                 <i className="fa-solid fa-graduation-cap" style={{ color: 'var(--color-success)' }}></i> Classroom Assignment Submission
               </h3>
               <button 
-                onClick={() => setShowAssignmentModal(false)}
+                onClick={closeAssignment}
                 style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-muted)' }}
                 aria-label="Close modal"
               >
@@ -1473,391 +1131,13 @@ export default function App() {
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '24px', overflowY: 'auto' }}>
-              {/* Header Info */}
-              <div style={{ padding: '16px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '6px', marginBottom: '24px' }}>
-                <div style={{ fontWeight: '700', color: '#166534', marginBottom: '4px', fontSize: '15px' }}>
-                  📝 Classroom Curriculum Reference: Exploring Statistics in the Titanic Dataset
-                </div>
-                <div style={{ fontSize: '13px', color: '#166534', lineHeight: '1.4' }}>
-                  This page documents your hands-on statistical exercises and final reflection responses for the class assignment on <strong>18 June 2026</strong>. In the future, new questions and updates will be added directly to this view.
-                </div>
-              </div>
-
-              {/* Five Pillars of Statistics Table */}
-              <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-circle-nodes" style={{ color: 'var(--color-primary)' }}></i> The 5 Pillars of Statistical Reasoning in ML
-              </h4>
-              <div style={{ overflowX: 'auto', marginBottom: '28px' }}>
-                <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid var(--border-color)' }}>
-                      <th style={{ padding: '10px 12px', fontWeight: '700' }}>Pillar</th>
-                      <th style={{ padding: '10px 12px', fontWeight: '700' }}>Mathematical Concept</th>
-                      <th style={{ padding: '10px 12px', fontWeight: '700' }}>Titanic Dataset Value</th>
-                      <th style={{ padding: '10px 12px', fontWeight: '700' }}>ML Equivalent</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '600' }}>Mean & Median</td>
-                      <td style={{ padding: '10px 12px' }}>Central tendency measures.</td>
-                      <td style={{ padding: '10px 12px' }}>Mean Age = <strong>29.7 years</strong>; Median Fare = <strong>$14.45</strong></td>
-                      <td style={{ padding: '10px 12px' }}>Feature Imputation & Balance</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '600' }}>Variance & Std Dev</td>
-                      <td style={{ padding: '10px 12px' }}>Measures of data dispersion.</td>
-                      <td style={{ padding: '10px 12px' }}>Fare Std Dev = <strong>$49.69</strong> (reflects wide wealth spread)</td>
-                      <td style={{ padding: '10px 12px' }}>Feature Scaling & Z-Normalizer</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '600' }}>Correlation</td>
-                      <td style={{ padding: '10px 12px' }}>Strength of linear relationships.</td>
-                      <td style={{ padding: '10px 12px' }}>Sex code vs. Survived = <strong>+0.54</strong> (strongest signal)</td>
-                      <td style={{ padding: '10px 12px' }}>Feature Selection & Pruning</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '600' }}>Hypothesis Testing</td>
-                      <td style={{ padding: '10px 12px' }}>Statistical significance check.</td>
-                      <td style={{ padding: '10px 12px' }}>Gender difference t-test p-value = <strong>p &lt; 0.001</strong></td>
-                      <td style={{ padding: '10px 12px' }}>A/B Testing & Cross Validation</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: '600' }}>Regression</td>
-                      <td style={{ padding: '10px 12px' }}>Predictive outcome modeling.</td>
-                      <td style={{ padding: '10px 12px' }}>Survival Probability of passenger = <strong>Logistic function</strong></td>
-                      <td style={{ padding: '10px 12px' }}>Linear/Logistic Classifier</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Hands-On Coding Exercises */}
-              <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-code" style={{ color: 'var(--color-primary)' }}></i> Hands-On Coding Sandbox Outputs
-              </h4>
-              <div className="sandbox-grid" style={{ gap: '16px', marginBottom: '28px', marginTop: 0 }}>
-                <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                    Part 3: Student's t-Test
-                  </div>
-                  <pre style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', backgroundColor: '#e2e8f0', padding: '10px', borderRadius: '4px' }}>
-                    {`>>> from scipy.stats import ttest_ind
->>> ttest_ind(female_survival, male_survival)
-TtestResult(statistic=19.3499, pvalue=3.79e-71, df=889.0)`}
-                  </pre>
-                  <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                    <strong>Interpretation:</strong> Since the p-value is extremely close to 0 ($p \ll 0.05$), the survival rates between genders are statistically different, validating historical lifeboat boarding assumptions.
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                    Part 4: Logistic Regression
-                  </div>
-                  <pre style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', backgroundColor: '#e2e8f0', padding: '10px', borderRadius: '4px' }}>
-                    {`>>> custom_passenger = [[25.0, 50.0, 2]]
->>> model.predict_proba(custom_passenger)[:, 1]
-array([0.8242]) # ~82.42%`}
-                  </pre>
-                  <div style={{ marginTop: '8px', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                    <strong>Interpretation:</strong> A 25-year-old passenger traveling in Second Class who paid a $50 fare is predicted by the logistic model to have an <strong>82.42% probability of survival</strong>.
-                  </div>
-                </div>
-              </div>
-
-              {/* Reflection Questions */}
-              <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-lightbulb" style={{ color: 'var(--color-primary)' }}></i> Part 5: Classroom Reflection & Discussion
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
-                <div style={{ borderLeft: '3px solid var(--color-accent)', paddingLeft: '12px' }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>Q: Which statistical measure gave the most insight?</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Comparing passenger survival rates by gender and class (descriptive stats) along with the correlation heatmap reveals that gender (`sex_code`) is the strongest linear predictor of survival.</div>
-                </div>
-                <div style={{ borderLeft: '3px solid var(--color-accent)', paddingLeft: '12px' }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>Q: How did hypothesis testing validate your assumptions?</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>The Student's t-test yielded a p-value far smaller than $0.05$ ($3.79 \times 10^{-71}$), which mathematically validated that the differences in survival probabilities between genders were not the result of random chance.</div>
-                </div>
-                <div style={{ borderLeft: '3px solid var(--color-accent)', paddingLeft: '12px' }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>Q: How does regression connect statistics to ML prediction?</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Regression maps correlation coefficients into parameter weights of a linear equation, showing how statistics converts descriptive metrics (means, covariances) into a predictive log-odds classifier.</div>
-                </div>
-              </div>
-
-              {/* Main Homework Q&A */}
-              <h4 style={{ margin: '0 0 16px 0', color: 'var(--text-primary)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-circle-question" style={{ color: 'var(--color-success)' }}></i> Assignment Answers: 18 June 2026
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ display: 'inline-flex', padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: '700' }}>Question 1</span>
-                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Distractions are dangerous. Elaborate.</strong>
-                  </div>
-                  <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                    On the Titanic, wireless operators were distracted by transmitting high-volume private passenger telegrams, causing them to set aside and ignore critical incoming ice warnings from surrounding ships.
-                    <br /><br />
-                    In Machine Learning, distractions manifest as prioritizing model complexity (e.g. over-parameterized neural networks) or hyperparameter tuning before verifying the integrity of the data. Chasing validation accuracy on a dataset containing <strong>target leakage</strong> or <strong>class representation bias</strong> leads to model failure when confronted with real-world validation sets.
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ display: 'inline-flex', padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: '700' }}>Question 2</span>
-                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Stakeholders should be kept informed. (Yes/No - Explain)</strong>
-                  </div>
-                  <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                    <strong>YES.</strong> Delaying clear communications regarding the damage and lack of lifeboats on the Titanic prevented organized boarding, leading to lifeboats being launched half-empty.
-                    <br /><br />
-                    In Data Science, stakeholders (domain users, business owners, safety engineers) must be informed of a model's prediction boundaries, standard error rates, and failure thresholds. Hiding model uncertainty to project perfect accuracy leads to disastrous failures when decisions are automated on out-of-distribution inputs.
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ display: 'inline-flex', padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: '700' }}>Question 3</span>
-                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Traceability is essential. What do you think?</strong>
-                  </div>
-                  <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                    <strong>Traceability is absolutely essential.</strong> The absence of trace records for cabin allocations, communication receipts, and exact lifeboat logs made post-accident audits highly challenging.
-                    <br /><br />
-                    For Machine Learning workflows, traceability means logging data lineage, pipeline definitions, random seeds, and specific model weights. If a deployed classifier makes an unfair or biased decision, engineers must be able to trace that output back to the specific training data sample and preprocessing configuration that caused it.
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ display: 'inline-flex', padding: '4px 8px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: '700' }}>Question 4</span>
-                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Documentation may have lasting benefits. True or False? Explain.</strong>
-                  </div>
-                  <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                    <strong>TRUE.</strong> The extensive records and testimonies compiled by the American and British inquiries established safety policies (the International Ice Patrol, continuous radio watches, lifeboat capacities mapped to passenger count) that have protected ships for over a century.
-                    <br /><br />
-                    In AI development, documentation prevents knowledge silos and ensures model reproducibility. Detailed descriptions of data dictionaries, validation strategies, assumptions, and ethical audits protect platforms against regression and ensure regulatory compliance.
-                  </div>
-                </div>
-
-                {/* Part 6: Model Comparison Results & Interpretation */}
-                <div style={{ marginTop: '32px', borderTop: '2px dashed var(--border-color)', paddingTop: '28px' }}>
-                  <h4 style={{ margin: '0 0 16px 0', color: 'var(--text-primary)', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <i className="fa-solid fa-square-poll-vertical" style={{ color: 'var(--color-primary)' }}></i> Part 6: Model Comparison Results & Interpretation
-                  </h4>
-                  
-                  <div style={{ padding: '18px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid var(--color-success)', marginBottom: '24px' }}>
-                    <p style={{ margin: 0, fontSize: '14.5px', color: '#166534', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="fa-solid fa-circle-check" style={{ color: 'var(--color-success)' }}></i> Yes, this table is your model comparison result.
-                    </p>
-                    <p style={{ margin: '8px 0 0 0', fontSize: '13.5px', color: '#166534', lineHeight: '1.5' }}>
-                      It shows which machine learning model predicted Titanic survival better. In your result, the <strong>best overall model is YDF Random Forest</strong>, because it has the highest <strong>Holdout Validation Accuracy = 0.8212</strong>, meaning around <strong>82.12% correct predictions</strong> on unseen validation data.
-                    </p>
-                  </div>
-
-                  {/* Column Definitions */}
-                  <h5 style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700' }}>1. What each column means</h5>
-                  <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
-                    <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
-                          <th style={{ padding: '8px 10px', fontWeight: '700' }}>Term</th>
-                          <th style={{ padding: '8px 10px', fontWeight: '700' }}>Simple meaning</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>Model Name</strong></td>
-                          <td style={{ padding: '8px 10px' }}>The machine learning algorithm used.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>GridSearchCV / CV Accuracy</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Average accuracy during cross-validation or tuning. It tests the model on different parts of training data.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>Holdout Validation Accuracy</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Accuracy on a separate validation set that the model did not train on. This is very important.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>Precision</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Out of passengers predicted as "Survived", how many really survived.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>Recall</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Out of actual survivors, how many the model correctly found.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>F1 Score</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Balance between precision and recall. Useful when both mistakes matter.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>ROC-AUC</strong></td>
-                          <td style={{ padding: '8px 10px' }}>Measures how well the model separates survivors from non-survivors using probability. Higher is better.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: '600' }}><strong>Best Parameters</strong></td>
-                          <td style={{ padding: '8px 10px' }}>The best settings found for that model.</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Definitions list */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
-                    <div style={{ padding: '12px 16px', borderLeft: '3px solid var(--color-primary)', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>2. Accuracy meaning</strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                        Example: <code>YDF Random Forest Holdout Accuracy = 0.8212</code><br/>
-                        Meaning: The model correctly predicted around 82 out of 100 passengers. Accuracy alone is not enough, which is why we check precision, recall, F1 score, and ROC-AUC.
-                      </p>
-                    </div>
-                    <div style={{ padding: '12px 16px', borderLeft: '3px solid var(--color-primary)', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>3. Precision meaning</strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                        Example: <code>YDF Random Forest Precision = 0.8136</code><br/>
-                        Meaning: When the model predicted survival, it was correct around 81.36% of the time. High precision prevents falsely saying too many people survived.
-                      </p>
-                    </div>
-                    <div style={{ padding: '12px 16px', borderLeft: '3px solid var(--color-primary)', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>4. Recall meaning</strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                        Example: <code>YDF Random Forest Recall = 0.6957</code><br/>
-                        Meaning: The model correctly detected around 69.57% of the actual survivors. High recall catches more survivors.
-                      </p>
-                    </div>
-                    <div style={{ padding: '12px 16px', borderLeft: '3px solid var(--color-primary)', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>5. F1 Score meaning</strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                        Example: <code>YDF Random Forest F1 = 0.7500</code><br/>
-                        Meaning: This is the balance between correct survival predictions and ability to find actual survivors. This is the best F1 score in your table, showing a well-balanced model.
-                      </p>
-                    </div>
-                    <div style={{ padding: '12px 16px', borderLeft: '3px solid var(--color-primary)', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>6. ROC-AUC meaning</strong>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                        Example: Measures probability ranking and separation capability (0 = Died, 1 = Survived). <strong>Random Forest is slightly best at 0.8486</strong>, but YDF Random Forest is best overall due to validation accuracy and F1 balance.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 7. What each model does */}
-                  <h5 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700' }}>7. What each model does & Notebook Code Meaning</h5>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '28px' }}>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Logistic Regression (Baseline)</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Baseline model searching for linear relationships between features (e.g. Female + First class = higher probability).<br/>
-                        <code>Holdout Validation Accuracy: 77.65%</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Decision Tree</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Splits variables recursively based on binary questions (e.g. Is Sex = Female?). Better at non-linear patterns.<br/>
-                        <code>Holdout Validation Accuracy: 80.45%</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Random Forest</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Ensemble of decision trees voting on predictions to stabilize variance and avoid tree overfitting.<br/>
-                        <code>Holdout Validation Accuracy: 81.56% | Best ROC-AUC: 0.8486</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--color-success)', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.04)' }}>
-                      <strong style={{ fontSize: '13.5px', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        YDF Random Forest <span style={{ fontSize: '9px', backgroundColor: 'var(--color-success)', color: '#fff', padding: '1px 4px', borderRadius: '3px' }}>Best Model</span>
-                      </strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Google's Yggdrasil Decision Forest Random Forest. Most balanced validation model with native missing value handling.<br/>
-                        <code>Holdout Validation Accuracy: 82.12% | F1 Score: 0.7500</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>YDF Gradient Boosted Trees</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Google's YDF boosting framework. Trains trees sequentially where each fixes previous mistakes.<br/>
-                        <code>Holdout Validation Accuracy: 81.56% | ROC-AUC: 0.8440</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>XGBoost</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Advanced highly-regularized gradient boosting popular in competitions. Restricted by Titanic's small dataset size.<br/>
-                        <code>Holdout Validation Accuracy: 79.89%</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>LightGBM</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Fast leaf-wise tree growth gradient boosting library optimized for efficiency and scaling.<br/>
-                        <code>Holdout Validation Accuracy: 80.45%</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>CatBoost</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Symmetric tree structure engineered to natively process high-cardinality categorical attributes without one-hot expansion.<br/>
-                        <code>Holdout Validation Accuracy: 79.33%</code>
-                      </p>
-                    </div>
-                    <div style={{ padding: '14px', border: '1px solid #ef4444', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.02)' }}>
-                      <strong style={{ fontSize: '13.5px', color: '#b91c1c' }}>TensorFlow Neural Net (Overfitted)</strong>
-                      <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                        Dense layers. Achieved extremely high CV accuracy (89.47%) but overfit training signals, yielding lower holdout validation.<br/>
-                        <code>Holdout Validation Accuracy: 80.45% | CV Accuracy: 89.47%</code>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 8. What are best parameters */}
-                  <h5 style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700' }}>8. What are best parameters?</h5>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    Hyperparameters discovered via GridSearchCV represent the optimal settings (e.g. <code>max_depth</code>, <code>n_estimators</code>, <code>learning_rate</code>) balancing model complexity and generalization:
-                  </p>
-                  <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
-                    <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
-                          <th style={{ padding: '8px 10px', fontWeight: '700' }}>Parameter Setting</th>
-                          <th style={{ padding: '8px 10px', fontWeight: '700' }}>Explanation</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px' }}><code>max_depth = 8, n_estimators = 50</code></td>
-                          <td style={{ padding: '8px 10px' }}>Random Forest restricted tree depth to 8 levels and pooled predictions from 50 trees.</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '8px 10px' }}><code>learning_rate = 0.1, max_depth = 3</code></td>
-                          <td style={{ padding: '8px 10px' }}>XGBoost restricted depth to 3 and scaled tree adjustments by a 0.1 learning rate.</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* 9. Which model is best */}
-                  <h5 style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700' }}>9. Which model is best in your table?</h5>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    <div>✔️ <strong>Best by Holdout Validation Accuracy & F1:</strong> YDF Random Forest (Holdout: 82.12%, F1: 0.7500)</div>
-                    <div>✔️ <strong>Best by ROC-AUC:</strong> Random Forest (ROC-AUC: 0.8486)</div>
-                  </div>
-
-                  {/* 10. Final Interpretation */}
-                  <h5 style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700' }}>10. Final interpretation of your result</h5>
-                  <div style={{ padding: '16px', backgroundColor: '#eff6ff', borderLeft: '4px solid var(--primary-color)', borderRadius: '6px', fontSize: '13.5px', color: '#1e40af', lineHeight: '1.6' }}>
-                    In this Titanic survival prediction experiment, YDF Random Forest performed best overall, with the highest validation accuracy of 82.12% and F1 score of 0.7500, indicating the most stable predictions. Tree-based ensemble structures outperformed the baseline Logistic Regression and overfitted Deep Neural Net. Tabular dataset splits (relying strongly on rule-based attributes like passenger gender, class groups, fares, and cabin decks) are highly suited to tree classifiers rather than linear algorithms or high-parameter neural layers.
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            <AssignmentPage />
 
             {/* Modal Footer */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
               <button 
                 className="btn btn-assignment" 
-                onClick={() => setShowAssignmentModal(false)}
+                onClick={closeAssignment}
                 style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
               >
                 Close Assignment

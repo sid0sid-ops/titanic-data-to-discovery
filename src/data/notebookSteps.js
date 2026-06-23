@@ -181,17 +181,5 @@ export const notebookSteps = [
     codeSnippet: '# No code cell - historical and ethical reflection.',
     outputSummary: 'Ethical review of machine learning applications.',
     keyInsight: 'Models reflect the historical biases of their training data. Responsible machine learning requires recognizing these structures.'
-  },
-  {
-    id: 'predictor',
-    stepNumber: 17,
-    title: 'Sandbox Predictor',
-    subtitle: 'Interactive local predictions dashboard',
-    explanation: 'Test predictions using local passenger inputs. Modify variables in the sandbox below to observe survival probability calculations instantly.',
-    whyItMatters: 'Connecting model parameters to an interactive workspace builds intuitive confidence in coefficients.',
-    codeSnippet: '# Sandbox script to predict custom passenger profiles\nmodel = best_pipeline\ncustom_passengers = pd.DataFrame([\n    {"pclass": 3, "sex": "male", "age": 22.0, "sibsp": 0, "parch": 0, "fare": 7.25, "embarked": "S", "cabin": np.nan, "name": "Single, Mr. Third Class"},\n    {"pclass": 1, "sex": "female", "age": 38.0, "sibsp": 1, "parch": 0, "fare": 71.28, "embarked": "C", "cabin": "C85", "name": "Married, Mrs. First Class"}\n])\npredict_and_print(custom_passengers, model)',
-    outputSummary: 'Single Mr: ~11.6% Survival probability | Married Mrs: ~97.1% Survival probability',
-    keyInsight: 'Predicting individual profiles highlights the non-linear boundaries created by one-hot encoded categories.',
-    isSandboxPredictor: true
   }
 ];

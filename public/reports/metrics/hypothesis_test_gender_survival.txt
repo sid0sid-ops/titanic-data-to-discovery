@@ -1,0 +1,19 @@
+Dataset: Kaggle 891-row training dataset
+Source: Local file: kaggle/train.csv
+Rows: 891
+Question: Did women have a higher survival rate than men?
+Test: Fisher exact test (one-sided)
+Alternative hypothesis: female survival rate > male survival rate
+Female survivors / total: 233 / 314
+Male survivors / total: 109 / 577
+Female survival rate: 0.7420
+Male survival rate: 0.1889
+Effect size (female - male rate): 0.5531
+Approximate 95% CI for rate difference: [0.4951, 0.6111]
+Odds ratio: 12.3507
+p-value: 3.592513e-60
+Alpha: 0.05
+Interpretation: reject equal-or-lower female survival when p < 0.05; the sample supports higher female survival.
+Assumptions: recorded passengers are treated as independent observations and category labels are accurate.
+Limitations: this observational historical dataset is not randomized; class, age, family structure, and evacuation policy may confound the association.
+The Wald confidence interval is descriptive; Fisher's exact test supplies the reported p-value.

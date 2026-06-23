@@ -32,13 +32,13 @@ The workflow uses Scikit-Learn `Pipeline` and `ColumnTransformer` so numeric and
 
 Logistic Regression is the interpretable baseline. Random Forest is a non-linear comparison model. The advanced section uses `GridSearchCV` to compare model settings through stratified cross-validation.
 
-The validated website result remains:
+An archived OpenML reference run reported:
 
 ```text
 Test Accuracy: 0.8473 / 84.73%
 ```
 
-That value is the current validated run only and may change with dataset version, preprocessing, feature engineering, train-test split, and random state.
+**Metric provenance:** OpenML Titanic, 1,309 rows; Logistic Regression; numeric features `age`, `sibsp`, `parch`, `fare`, `family_size`; categorical features `pclass`, `sex`, `embarked`, `is_alone`, `title`, `has_cabin`; stratified 80/20 holdout; `random_state=42`; source `notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb`. This historical result is retained for reference and is not the current Kaggle assignment baseline.
 
 ## ROC-AUC
 

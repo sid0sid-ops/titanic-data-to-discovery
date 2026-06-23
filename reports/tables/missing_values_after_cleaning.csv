@@ -1,0 +1,10 @@
+stage,column,missing_count,missing_percent
+after_assignment_cleaning,pclass,0,0.0
+after_assignment_cleaning,sex,0,0.0
+after_assignment_cleaning,age,0,0.0
+after_assignment_cleaning,sibsp,0,0.0
+after_assignment_cleaning,parch,0,0.0
+after_assignment_cleaning,fare,0,0.0
+after_assignment_cleaning,embarked,0,0.0
+after_assignment_cleaning,family_size,0,0.0
+after_assignment_cleaning,is_alone,0,0.0

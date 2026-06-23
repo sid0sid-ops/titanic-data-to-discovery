@@ -3,6 +3,7 @@
 scripts/create_model_comparison_notebook.py
 Generates notebooks/01_Titanic_Model_Comparison_Project.ipynb
 """
+
 from pathlib import Path
 import json
 import textwrap
@@ -11,17 +12,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 NOTEBOOKS_DIR.mkdir(exist_ok=True)
 
+
 def clean_source(text):
     dedented = textwrap.dedent(text).strip()
     lines = dedented.splitlines()
     return [line + "\n" for line in lines]
 
+
 def make_md_cell(text):
-    return {
-        "cell_type": "markdown",
-        "metadata": {},
-        "source": clean_source(text)
-    }
+    return {"cell_type": "markdown", "metadata": {}, "source": clean_source(text)}
+
 
 def make_code_cell(text):
     return {
@@ -29,8 +29,9 @@ def make_code_cell(text):
         "execution_count": None,
         "metadata": {},
         "outputs": [],
-        "source": clean_source(text)
+        "source": clean_source(text),
     }
+
 
 def main():
     notebook = {
@@ -54,12 +55,10 @@ def main():
                 
                 All models were trained and tested on the same train-validation split to make the comparison fair. I evaluated them using accuracy, precision, recall, F1 score, and ROC-AUC. The best model was selected based on validation performance and then used to generate predictions for the Kaggle test dataset.
             """),
-            
             make_md_cell("""
                 ## Step 1: Environment & Setup
                 We install Google YDF (`ydf`), XGBoost, LightGBM, and CatBoost inside the Colab environment. We also import Pandas, NumPy, and Scikit-Learn evaluation utilities.
             """),
-            
             make_code_cell(r"""
                 # Logistic Regression, Decision Tree, Random Forest,
                 # YDF, XGBoost, LightGBM, CatBoost
@@ -72,9 +71,8 @@ def main():
                 # 7. Predict Kaggle test.csv
                 # 8. Create submission.csv
                 
-                import sys
+                import sys  # noqa: F401 - used by the Colab shell install command
                 import os
-                import re
                 import warnings
                 warnings.filterwarnings("ignore")
                 
@@ -87,19 +85,15 @@ def main():
                         print(f"Installing {lib}...")
                         !{sys.executable} -m pip install {lib} -U --quiet
                 
-                import pandas as pd
-                import numpy as np
-                import matplotlib.pyplot as plt
-                import seaborn as sns
+                import pandas as pd  # noqa: E402
+                import numpy as np  # noqa: E402
                 
                 print("✓ Step 1: Libraries and environment successfully set up!")
             """),
-            
             make_md_cell("""
                 ## Step 2: Load Data
                 We load the training and test CSV files. If local files are not present in Colab, we download them from the remote GitHub repository fallback.
             """),
-            
             make_code_cell(r"""
                 possible_paths = ["../kaggle/", "./kaggle/", "../data/", "./data/", "/content/", "/content/kaggle/"]
                 train_df, test_df = None, None
@@ -126,7 +120,6 @@ def main():
                 print("Train shape:", train_df.shape)
                 print("Test shape:", test_df.shape)
             """),
-            
             make_md_cell("""
                 ## Step 3: Clean and Engineer Features
                 We engineer advanced features:
@@ -135,7 +128,6 @@ def main():
                 3. **Cabin Deck:** Extract the deck letter from the Cabin string.
                 4. **Ticket Group Survival Rate:** For group tickets, calculate average survival of the rest of the group to maximize prediction signals without target leakage.
             """),
-            
             make_code_cell(r"""
                 def advanced_ml_feature_engineering(train, test):
                     train_copy = train.copy()
@@ -178,12 +170,10 @@ def main():
                 train_prep, test_prep = advanced_ml_feature_engineering(train_df, test_df)
                 print("✓ Features engineered successfully.")
             """),
-            
             make_md_cell("""
                 ## Step 4: Split train.csv into Training + Validation
                 We separate variables from the Survived target and construct an 80/20 train/validation split stratified by outcomes to maintain class balance.
             """),
-            
             make_code_cell(r"""
                 from sklearn.model_selection import train_test_split
                 
@@ -200,7 +190,6 @@ def main():
                 
                 print("Train shape:", X_train.shape, "| Validation shape:", X_val.shape)
             """),
-            
             make_md_cell("""
                 ## Step 5: Train Many Models (GridSearchCV & Tree Boosting)
                 We build preprocessors and train all algorithms:
@@ -213,12 +202,7 @@ def main():
                 7. **LightGBM** (Tuned)
                 8. **CatBoost** (Tuned)
             """),
-            
             make_code_cell(r"""
-                from sklearn.preprocessing import StandardScaler, OneHotEncoder
-                from sklearn.compose import ColumnTransformer
-                from sklearn.pipeline import Pipeline
-                from sklearn.impute import SimpleImputer
                 
                 # Define baseline scikit-learn preprocessing
                 num_cols = ["Age", "SibSp", "Parch", "Fare", "FamilySize", "Group_Survival_Rate"]
@@ -245,10 +229,6 @@ def main():
                 best_params = {}
                 
                 # Import baseline models
-                from sklearn.linear_model import LogisticRegression
-                from sklearn.tree import DecisionTreeClassifier
-                from sklearn.ensemble import RandomForestClassifier
-                from sklearn.model_selection import GridSearchCV
                 
                 # A. Logistic Regression
                 lr_grid = GridSearchCV(
@@ -281,7 +261,6 @@ def main():
                 holdout_metrics["Random Forest"] = rf_grid.best_estimator_
                 
                 # D. Google YDF Models (Random Forest & GBT)
-                import ydf
                 train_prep_ydf = train_prep.iloc[X_train.index].copy()
                 train_prep_ydf["Survived"] = train_prep_ydf["Survived"].astype(int)
                 
@@ -300,7 +279,6 @@ def main():
                 holdout_metrics["YDF Gradient Boosted Trees"] = ydf_gbt
                 
                 # E. XGBoost
-                import xgboost as xgb
                 xgb_clf = GridSearchCV(
                     xgb.XGBClassifier(eval_metric="logloss", random_state=42),
                     {"max_depth": [3, 4, 5], "learning_rate": [0.05, 0.1]}, cv=5
@@ -311,7 +289,6 @@ def main():
                 holdout_metrics["XGBoost"] = xgb_clf.best_estimator_
                 
                 # F. LightGBM
-                import lightgbm as lgb
                 lgb_clf = GridSearchCV(
                     lgb.LGBMClassifier(verbosity=-1, random_state=42),
                     {"max_depth": [3, 4], "learning_rate": [0.05, 0.1]}, cv=5
@@ -322,7 +299,6 @@ def main():
                 holdout_metrics["LightGBM"] = lgb_clf.best_estimator_
                 
                 # G. CatBoost
-                from catboost import CatBoostClassifier
                 cb_grid = GridSearchCV(
                     CatBoostClassifier(verbose=0, random_seed=42),
                     {"depth": [4, 6], "learning_rate": [0.05, 0.1]}, cv=5
@@ -333,10 +309,6 @@ def main():
                 holdout_metrics["CatBoost"] = cb_grid.best_estimator_
                 
                 # H. TensorFlow Keras Neural Network (Deep Learning with TPU support)
-                import tensorflow as tf
-                from tensorflow.keras.models import Sequential
-                from tensorflow.keras.layers import Dense, Dropout, Input
-                from tensorflow.keras.optimizers import Adam
                 
                 # Detect and initialize TPU if available in Colab
                 try:
@@ -380,12 +352,10 @@ def main():
                 
                 print("✓ All models trained and cross-validated successfully!")
             """),
-            
             make_md_cell("""
                 ## Step 6: Compare Accuracy & Diagnostic Metrics
                 We evaluate each model on the holdout validation split, gathering accuracy, precision, recall, F1, and ROC-AUC scores into a sorted results table.
             """),
-            
             make_code_cell(r"""
                 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
                 
@@ -430,12 +400,10 @@ def main():
                 comparison_df = pd.DataFrame(comparison_rows).sort_values("Holdout Validation Accuracy", ascending=False)
                 display(comparison_df.round(4))
             """),
-            
             make_md_cell("""
                 ## Step 7: Predict Kaggle test.csv using the Best Model
                 We select the model that achieved the highest Holdout Validation Accuracy and run inferences on the unseen Kaggle test.csv dataset.
             """),
-            
             make_code_cell(r"""
                 best_row = comparison_df.iloc[0]
                 best_name = best_row["Model Name"]
@@ -457,12 +425,10 @@ def main():
                 else:
                     test_preds = best_estimator.predict(test_prep_proc).astype(int)
             """),
-            
             make_md_cell("""
                 ## Step 8: Create submission.csv
                 We format our passenger predictions into a submission DataFrame and write the file.
             """),
-            
             make_code_cell(r"""
                 submission = pd.DataFrame({
                     "PassengerId": test_df["PassengerId"],
@@ -479,16 +445,20 @@ def main():
                 
                 print(f"✓ Saved submission predictions to: {sub_path}")
                 print(submission.head(10))
-            """)
+            """),
         ],
         "metadata": {
-            "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
-            "language_info": {"name": "python", "pygments_lexer": "ipython3"}
+            "kernelspec": {
+                "display_name": "Python 3",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {"name": "python", "pygments_lexer": "ipython3"},
         },
         "nbformat": 4,
-        "nbformat_minor": 5
+        "nbformat_minor": 5,
     }
-    
+
     nb_name = "01_Titanic_Model_Comparison_Project.ipynb"
     nb_path = NOTEBOOKS_DIR / nb_name
     if nb_path.exists():
@@ -496,6 +466,7 @@ def main():
     with open(nb_path, "w", encoding="utf-8") as f:
         json.dump(notebook, f, indent=2, ensure_ascii=False)
     print(f"✓ Generated {nb_name}")
+
 
 if __name__ == "__main__":
     main()

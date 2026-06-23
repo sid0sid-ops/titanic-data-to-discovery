@@ -918,15 +918,13 @@ a:hover {
   width: 100%;
   text-align: center;
   box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   position: relative;
 }
 
 .pipeline-node:hover {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .pipeline-node .node-type {
@@ -948,16 +946,24 @@ a:hover {
 .pipeline-node .node-details {
   font-size: 11px;
   color: var(--text-secondary);
-  margin-top: 6px;
+  margin-top: 8px;
   background-color: #f1f5f9;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 4px;
-  display: none;
   border: 1px solid var(--border-color);
+  text-align: left;
 }
 
-.pipeline-node:hover .node-details {
-  display: block;
+.pipeline-node .node-details summary {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: center;
+}
+
+.pipeline-node .node-details div {
+  margin-top: 5px;
+  line-height: 1.4;
 }
 
 .pipeline-arrow-down {
@@ -1653,5 +1659,4 @@ a:hover {
     border-top: 1px solid var(--border-color);
   }
 }
-
 

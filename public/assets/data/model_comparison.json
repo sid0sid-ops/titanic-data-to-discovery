@@ -78,12 +78,12 @@
   },
   {
     "Model": "TensorFlow Neural Net",
-    "CV_Accuracy": 0.8947,
-    "Accuracy": 0.8045,
-    "Precision": 0.7656,
-    "Recall": 0.7101,
-    "F1": 0.7368,
-    "ROC-AUC": 0.8327,
+    "CV_Accuracy": 0.8975,
+    "Accuracy": 0.7933,
+    "Precision": 0.7500,
+    "Recall": 0.6957,
+    "F1": 0.7218,
+    "ROC-AUC": 0.8560,
     "Best_Params": "Dense(64) -> Dropout(0.2) -> Dense(32) -> Dropout(0.2) -> Sigmoid",
     "Notes": "Deep Learning MLP model compiled under TPU strategy scope."
   },
