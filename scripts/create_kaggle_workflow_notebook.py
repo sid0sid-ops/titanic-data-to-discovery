@@ -474,13 +474,43 @@ def main():
             vis_df = df.copy()
             vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
             vis_df["Ticket Class"] = vis_df["pclass"].map({1: "1st Class", 2: "2nd Class", 3: "3rd Class"})
+            vis_df["Sex"] = vis_df["sex"].astype(str).str.strip().str.title()
+            vis_df["Embarked Port"] = vis_df["embarked"].astype(str).str.strip().str.upper().map({
+                "S": "Southampton",
+                "C": "Cherbourg",
+                "Q": "Queenstown",
+            })
+            vis_df["Ticket Class"] = pd.Categorical(
+                vis_df["Ticket Class"],
+                categories=["1st Class", "2nd Class", "3rd Class"],
+                ordered=True,
+            )
+            vis_df["Sex"] = pd.Categorical(vis_df["Sex"], categories=["Female", "Male"], ordered=True)
+            vis_df["Embarked Port"] = pd.Categorical(
+                vis_df["Embarked Port"],
+                categories=["Cherbourg", "Queenstown", "Southampton"],
+                ordered=True,
+            )
+            vis_df["Survival Status"] = pd.Categorical(
+                vis_df["Survival Status"],
+                categories=["Died", "Survived"],
+                ordered=True,
+            )
+            parcat_df = vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
             
             fig_parcat = px.parallel_categories(
-                vis_df.dropna(subset=["embarked", "sex", "Ticket Class", "Survival Status"]), 
-                dimensions=["Ticket Class", "sex", "embarked", "Survival Status"],
+                parcat_df,
+                dimensions=["Ticket Class", "Sex", "Embarked Port", "Survival Status"],
                 color="survived", 
                 color_continuous_scale=px.colors.sequential.Viridis,
                 title="Parallel Categories: Demographic Flow to Survival Outcome"
+            )
+            fig_parcat.update_layout(
+                autosize=False,
+                height=700,
+                width=1300,
+                margin=dict(t=90, l=80, r=180, b=120),
+                font=dict(size=13),
             )
             fig_parcat.show()
         """),

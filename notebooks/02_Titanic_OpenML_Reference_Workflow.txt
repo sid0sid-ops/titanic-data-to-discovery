@@ -377,6 +377,13 @@ fig_parcat = px.parallel_categories(
     color_continuous_scale=px.colors.sequential.Viridis,
     title="Parallel Categories: Demographic Flow to Survival Outcome"
 )
+fig_parcat.update_layout(
+    autosize=False,
+    height=700,
+    width=1300,
+    margin=dict(t=90, l=80, r=180, b=120),
+    font=dict(size=13),
+)
 fig_parcat.show()
 
 
@@ -648,4 +655,3 @@ print("=== Simple Logistic Regression Predictor ===")
 print(f"Passenger Profile  : Age=25, Fare=50, Pclass=2")
 print(f"Survival Probability: {pred_prob*100:.2f}%")
 print(f"Prediction Outcome : {'SURVIVES' if pred_survival == 1 else 'DECEASED'}")
-

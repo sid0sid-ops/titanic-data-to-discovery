@@ -454,6 +454,13 @@ def main():
                 color_continuous_scale=px.colors.sequential.Viridis,
                 title="Parallel Categories: Demographic Flow to Survival Outcome"
             )
+            fig_parcat.update_layout(
+                autosize=False,
+                height=700,
+                width=1300,
+                margin=dict(t=90, l=80, r=180, b=120),
+                font=dict(size=13),
+            )
             fig_parcat.show()
         """),
         make_md_cell("""

@@ -104,7 +104,19 @@ export default function AssignmentPage() {
         </table>
       </div>
 
-      <div role="tablist" aria-label="Assignment days" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '18px 0' }}>
+      <label
+        id="assignment-day-tabs-label"
+        htmlFor="assignment-day-tabs"
+        style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}
+      >
+        Assignment days
+      </label>
+      <div
+        id="assignment-day-tabs"
+        role="tablist"
+        aria-labelledby="assignment-day-tabs-label"
+        style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '18px 0' }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}

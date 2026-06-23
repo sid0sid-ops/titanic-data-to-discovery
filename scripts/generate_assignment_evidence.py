@@ -137,12 +137,15 @@ def plot_static(frame: pd.DataFrame, correlation: pd.DataFrame, y_test, predicti
     plt.close(figure)
 
 
-def write_plot(figure, filename: str) -> None:
-    figure.update_layout(font_family="Arial", margin=dict(l=30, r=30, t=65, b=35))
+def write_plot(figure, filename: str, margin: dict | None = None) -> None:
+    figure.update_layout(font_family="Arial", margin=margin or dict(l=30, r=30, t=65, b=35))
+    default_height = f"{figure.layout.height}px" if figure.layout.height else "100%"
     figure.write_html(
         INTERACTIVE / filename,
         include_plotlyjs="cdn",
         full_html=True,
+        default_width="100%",
+        default_height=default_height,
         config={"responsive": True, "displaylogo": False},
     )
 
@@ -172,9 +175,15 @@ def plot_interactive(frame: pd.DataFrame) -> None:
         go.parcats.Dimension(values=flow["outcome"], label="Outcome"),
     ]
     parcats = go.Figure(go.Parcats(dimensions=dimensions, counts=flow["count"], line={"color": flow["survival_rate"], "colorscale": "Tealrose", "cmin": 0, "cmax": 1, "colorbar": {"title": "Survival rate"}}, hoveron="color", hoverinfo="count+probability"))
-    parcats.update_layout(title="Cleaned Passenger Flow: Class → Sex → Port → Family → Outcome", height=680)
+    parcats.update_layout(
+        title="Cleaned Passenger Flow: Class → Sex → Port → Family → Outcome",
+        autosize=False,
+        height=700,
+        width=1300,
+        font=dict(size=13),
+    )
     parcats.add_annotation(text="Hover shows passenger count; line color and colorbar show survival rate.", x=0.5, y=-0.08, xref="paper", yref="paper", showarrow=False)
-    write_plot(parcats, "parallel_categories.html")
+    write_plot(parcats, "parallel_categories.html", margin=dict(t=90, l=80, r=180, b=120))
 
     grouped = report.groupby(["class_label", "sex_label", "outcome"], observed=True).size().reset_index(name="count")
     rates = report.groupby(["class_label", "sex_label"], observed=True)["survived"].mean().reset_index(name="survival_rate")
