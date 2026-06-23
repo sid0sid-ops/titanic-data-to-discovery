@@ -22,10 +22,13 @@ const tabs = [
   { id: 'day1', label: 'Day 1' },
   { id: 'day3', label: 'Day 3' },
   { id: 'day4', label: 'Day 4' },
+  { id: 'day6', label: 'Day 6' },
   { id: 'day7', label: 'Day 7' },
   { id: 'day8', label: 'Day 8' },
   { id: 'day11', label: 'Day 11' },
 ];
+
+const tabIdsByDay = Object.fromEntries(tabs.map((tab) => [tab.label, tab.id]));
 
 const qaStyle = {
   padding: '14px 16px',
@@ -65,15 +68,6 @@ export default function AssignmentPage() {
 
   return (
     <div id="assignment" style={{ padding: '24px', overflowY: 'auto' }}>
-      <div style={{ padding: '16px', backgroundColor: '#f0fdf4', borderLeft: '4px solid var(--color-success)', borderRadius: '6px', marginBottom: '22px' }}>
-        <div style={{ fontWeight: 800, color: '#166534', marginBottom: '4px', fontSize: '15px' }}>
-          Classroom Assignment Page
-        </div>
-        <div style={{ fontSize: '13px', color: '#166534', lineHeight: 1.5 }}>
-          Content is based only on the study material files currently present in <code>study materials/</code>: Day 1, Day 3, Day 4, Linear Regression, Logistic Regression, and the Jupyter supervised/unsupervised exercise. Session timing: 04:00 pm to 06:00 pm.
-        </div>
-      </div>
-
       <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-primary)', fontSize: '16px' }}>Schedule</h4>
       <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
         <table className="comparison-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
@@ -85,22 +79,30 @@ export default function AssignmentPage() {
             </tr>
           </thead>
           <tbody>
-            {schedule.map(([day, topic, date]) => (
-              <tr key={day} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '9px 10px', fontWeight: 700 }}>{day}</td>
-                <td style={{ padding: '9px 10px' }}>{topic}</td>
-                <td style={{ padding: '9px 10px' }}>{date}</td>
-              </tr>
-            ))}
+            {schedule.map(([day, topic, date]) => {
+              const tabId = tabIdsByDay[day];
+              const isClickable = Boolean(tabId);
+
+              return (
+                <tr
+                  key={day}
+                  onClick={isClickable ? () => setActiveTab(tabId) : undefined}
+                  style={{
+                    borderBottom: '1px solid var(--border-color)',
+                    cursor: isClickable ? 'pointer' : 'default',
+                    backgroundColor: activeTab === tabId ? '#eff6ff' : 'transparent',
+                  }}
+                  aria-label={isClickable ? `Open ${day} assignment questions` : undefined}
+                >
+                  <td style={{ padding: '9px 10px', fontWeight: 700 }}>{day}</td>
+                  <td style={{ padding: '9px 10px' }}>{topic}</td>
+                  <td style={{ padding: '9px 10px' }}>{date}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-
-      <label htmlFor="assignment-source-note" style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '8px' }}>
-        Available study material tabs
-      </label>
-      <input id="assignment-source-note" type="checkbox" checked readOnly style={{ marginRight: '6px' }} />
-      <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>Only days with uploaded study material are shown below.</span>
 
       <div role="tablist" aria-label="Assignment days" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '18px 0' }}>
         {tabs.map((tab) => (
@@ -189,6 +191,32 @@ export default function AssignmentPage() {
             label="Question"
             question="Documentation may have lasting benefits, true or false and why"
             answer="True. Documentation has lasting benefits because it preserves the reasoning behind the work. A future reader can understand why certain columns were used, why missing values were handled in a specific way, and how the model was evaluated. In this project, documentation also helps connect classroom questions with notebook evidence, so the work can be reviewed instead of guessed."
+          />
+        </section>
+      )}
+
+      {activeTab === 'day6' && (
+        <section id="assignment-panel-day6" role="tabpanel" aria-labelledby="assignment-tab-day6" style={{ display: 'grid', gap: '12px' }}>
+          <h4 style={{ margin: 0, fontSize: '16px' }}>Day 6 - Supervised Learning</h4>
+          <QA
+            label="Concept"
+            question="What is supervised learning?"
+            answer="Supervised learning trains a model using labeled data, where every input has a known output. In the Titanic project, passenger features such as Age, Pclass, Sex, Fare, and SibSp are inputs, while known answers such as Survived or Fare become labels. The model learns the mapping from inputs to outputs and then predicts for new passengers."
+          />
+          <QA
+            label="Concept"
+            question="How do classification and regression differ in the Titanic project?"
+            answer="Classification predicts categories, such as whether a passenger survived or did not survive. Logistic Regression is used for this survival task. Regression predicts continuous numerical values, such as passenger fare. Linear Regression is used for that fare prediction task."
+          />
+          <QA
+            label="Workflow"
+            question="What supervised-learning workflow does the Day 6 material describe?"
+            answer="The workflow is to collect labeled data, split it into training and testing sets, train a model, validate it on unseen test data, and then use the trained model for new predictions. This matches the Kaggle notebook workflow: prepare the Titanic data, split the labeled training rows, fit a model, evaluate metrics, and predict on new passengers."
+          />
+          <QA
+            label="Assignment"
+            question="What assignments are present in the Day 6 Supervised Learning material?"
+            answer="The Day 6 material points students to three executable Titanic exercises: a Linear Regression program to predict Fare from Age, Pclass, and SibSp; a Logistic Regression program to predict Survived from Age, Pclass, and Sex; and a Titanic Learning Lab that compares supervised Logistic Regression with unsupervised K-Means clustering."
           />
         </section>
       )}

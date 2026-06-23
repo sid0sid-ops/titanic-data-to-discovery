@@ -661,7 +661,7 @@ export default function App() {
               className="btn btn-assignment btn-sm"
             >
               <i className="fa-solid fa-graduation-cap"></i>
-              <span>Assignment</span>
+              <span>Classroom Assignment Submission</span>
             </a>
             <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
               <i className="fa-solid fa-play"></i>
@@ -696,7 +696,7 @@ export default function App() {
               style={{ width: '100%', justifyContent: 'center' }}
             >
               <i className="fa-solid fa-graduation-cap"></i>
-              <span>Assignment</span>
+              <span>Classroom Assignment Submission</span>
             </a>
             <a 
               href={activeLinks.colab} 
@@ -792,11 +792,11 @@ export default function App() {
                     <span className="hero-tag">Jupyter Companion • Kaggle Dataset</span>
                     <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
                     <p className="hero-description">
-                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It details data auditing, feature preprocessing, classroom assignments, and model evaluations on the standard Kaggle training dataset.
+                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It connects the Day 6 supervised-learning material with the Titanic workflow: labeled data, classification vs regression, train/test evaluation, and model predictions on the standard Kaggle training dataset.
                     </p>
                     <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                       <a href="#assignment" onClick={openAssignment} className="btn btn-assignment">
-                        <i className="fa-solid fa-graduation-cap"></i> Classroom Assignment
+                        <i className="fa-solid fa-graduation-cap"></i> Classroom Assignment Submission
                       </a>
                       <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
                         <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
@@ -813,8 +813,8 @@ export default function App() {
                         <span className="hero-stat-lbl">Validation Accuracy</span>
                       </div>
                       <div className="hero-stat-card">
-                        <span className="hero-stat-val">10</span>
-                        <span className="hero-stat-lbl">Engineered Features</span>
+                        <span className="hero-stat-val">2</span>
+                        <span className="hero-stat-lbl">Supervised Tasks</span>
                       </div>
                     </div>
                   </section>
@@ -923,7 +923,7 @@ export default function App() {
         <div className="footer-container" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div className="footer-links" style={{ display: 'flex', gap: '20px', fontSize: '14px' }}>
             <a href={activeLinks.colab} target="_blank" rel="noreferrer"><i className="fa-solid fa-play"></i> Google Colab</a>
-            <a href={activeLinks.github} target="_blank" rel="noreferrer"><i className="fa-brands fa-github"></i> GitHub</a>
+            <a href={links.github} target="_blank" rel="noreferrer"><i className="fa-brands fa-github"></i> GitHub</a>
             <a href={activeLinks.github} target="_blank" rel="noreferrer"><i className="fa-solid fa-code"></i> IPYNB Source</a>
           </div>
 
@@ -1133,16 +1133,6 @@ export default function App() {
             {/* Modal Body */}
             <AssignmentPage />
 
-            {/* Modal Footer */}
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
-              <button 
-                className="btn btn-assignment" 
-                onClick={closeAssignment}
-                style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
-              >
-                Close Assignment
-              </button>
-            </div>
           </div>
         </div>
       )}
