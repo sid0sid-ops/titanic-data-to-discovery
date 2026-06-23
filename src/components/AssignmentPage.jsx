@@ -199,12 +199,7 @@ export default function AssignmentPage() {
           <QA
             label="Exercise 1"
             question="# Linear Regression on Titanic Dataset Python Program code. Goal: Predict passenger fare based on age, class, and family size"
-            answer="For this exercise, the target value is Fare, so Linear Regression is the correct model because it predicts a continuous number. The input features are Age, Pclass, and SibSp. Missing values are filled with the mean so the model can train without blank cells. After splitting the data into training and testing parts, the model learns how these passenger details relate to ticket fare. The final checks, Mean Squared Error and R2 Score, tell us how close the fare predictions are to the real fares. The new passenger example is used to show how the trained model can estimate fare for one passenger using age, class, and family-size information."
-          />
-          <QA
-            label="Answer Format"
-            question="What should be written as the answer for Exercise 1?"
-            answer="I would write that Linear Regression is used here because Fare is a numeric output. Age, passenger class, and number of siblings/spouses are used as input features. The dataset is cleaned by filling missing values, then it is split into train and test sets. After training, the model is evaluated using Mean Squared Error and R2 Score. This helped me understand that regression is useful when the goal is to predict a quantity, not a category."
+            answer="Fare is the target, so Linear Regression is used because it predicts a continuous value. Age, Pclass, and SibSp are the input features. Missing values are filled with the mean, then the data is split into training and testing sets. The model is trained on the training data and evaluated with Mean Squared Error and R2 Score."
           />
           <NotebookButton filename="Linear Regression on Titanic Dataset Python Program code.ipynb">
             Run Linear Regression Notebook in Colab
@@ -218,12 +213,7 @@ export default function AssignmentPage() {
           <QA
             label="Exercise 2"
             question="Python demo snippet for Logistic Regression on the Titanic dataset, showing how classification differs from regression"
-            answer="This exercise uses Logistic Regression because the target is Survived, which is a classification output with two possible classes: No or Yes. The selected features are Age, Pclass, and Sex. Age is filled using the mean, and Sex is converted into numbers so the model can use it. After training, the model predicts survival labels for the test data. Accuracy, confusion matrix, and classification report help explain how well the model separates passengers who survived from passengers who did not."
-          />
-          <QA
-            label="Answer Format"
-            question="How does classification differ from regression in this Titanic example?"
-            answer="Regression predicts a continuous value such as Fare, while classification predicts a category such as Survived or Not Survived. In the Logistic Regression exercise, the model does not estimate a ticket price. It learns from passenger features and gives a class decision for survival. That is why the evaluation uses accuracy, confusion matrix, precision, recall, and classification report instead of only regression error."
+            answer="Survived is the target, so Logistic Regression is used because it predicts a category with two classes: No or Yes. Age, Pclass, and Sex are the input features. Age is filled with the mean and Sex is converted to numbers. The model is trained on the training data and evaluated with accuracy, confusion matrix, and classification report."
           />
           <NotebookButton filename="Python demo snippet for Logistic Regression on the Titanic dataset.ipynb">
             Run Logistic Regression Notebook in Colab
@@ -237,12 +227,7 @@ export default function AssignmentPage() {
           <QA
             label="Exercise 3"
             question="Titanic Learning Lab: Supervised vs Unsupervised. Goal: Compare Logistic Regression (Supervised) vs K-Means (Unsupervised)"
-            answer="This exercise compares two learning styles on the same Titanic dataset. Logistic Regression is supervised because it trains with the known Survived column and learns to predict that target. K-Means is unsupervised because it does not use the survival label. Instead, it groups passengers into clusters using Age, Fare, and Pclass. The supervised part is evaluated with accuracy and classification results, while the unsupervised part is understood by checking cluster centers and visualizing passenger groups."
-          />
-          <QA
-            label="Answer Format"
-            question="What is the main difference between Supervised Learning and Unsupervised Learning in this exercise?"
-            answer="Supervised Learning uses a known answer during training. In this notebook, Logistic Regression uses Survived as the target and learns to predict survival. Unsupervised Learning does not use a target answer. K-Means only studies passenger features and forms natural groups based on similarity. So supervised learning is used for prediction, while unsupervised learning is used for pattern discovery."
+            answer="Logistic Regression is supervised because it uses the known Survived column to learn a prediction. K-Means is unsupervised because it does not use the survival label. It groups passengers by similarity using Age, Fare, and Pclass. The supervised part is checked with accuracy and classification results, while the unsupervised part is checked with cluster centers and the cluster plot."
           />
           <NotebookButton filename="Jupytor Notebook exercise.ipynb">
             Run Supervised vs Unsupervised Notebook in Colab
