@@ -10,9 +10,9 @@ NOTEBOOKS = [
     "notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb",
     "notebooks/01_Titanic_Model_Comparison_Project.ipynb",
     "notebooks/02_Titanic_OpenML_Reference_Workflow.ipynb",
-    "notebooks/03_Assignment_Linear_Regression_Titanic.ipynb",
-    "notebooks/04_Assignment_Logistic_Regression_Titanic.ipynb",
-    "notebooks/05_Assignment_Supervised_vs_Unsupervised_Titanic.ipynb",
+    "notebooks/Linear Regression on Titanic Dataset Python Program code.ipynb",
+    "notebooks/Python demo snippet for Logistic Regression on the Titanic dataset.ipynb",
+    "notebooks/Jupytor Notebook exercise.ipynb",
 ]
 
 

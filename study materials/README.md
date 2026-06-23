@@ -20,6 +20,23 @@ The assignment page should contain only:
 
 Do not add extra prediction widgets, model comparison tables, or unrelated notebook outputs to the assignment page.
 
+## Required Student Details
+
+Every assignment notebook should include these fields at the top:
+
+- `Name: Siddharth Tripathi`
+- `Guardian Name: Manoj Tripathi`
+- `Email ID: sidmsi532004@gmail.com`
+- `Contact Number: 9412116374`
+- `Enrollment No.: 473611`
+
+## Dataset Source
+
+For the assignment notebooks, load the Kaggle Titanic files directly from the GitHub raw URLs used in the study material:
+
+- `https://raw.githubusercontent.com/sid0sid-ops/titanic-data-to-discovery/main/kaggle/train.csv`
+- `https://raw.githubusercontent.com/sid0sid-ops/titanic-data-to-discovery/main/kaggle/test.csv`
+
 ## Notebook Content
 
 Use `notebooks/00_Titanic_Kaggle_Main_Workflow.ipynb` for:
@@ -59,4 +76,3 @@ When a future study material file is added:
 4. Put concepts and code learning into the notebook.
 5. Keep all new cells near the matching topic, not at the end unless it is a final reflection.
 6. Run notebook validation and the website build before committing.
-

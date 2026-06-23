@@ -45,9 +45,10 @@ function QA({ label, question, answer }) {
 }
 
 function NotebookButton({ filename, children }) {
+  const encodedFilename = encodeURIComponent(filename);
   return (
     <a
-      href={`https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/${filename}`}
+      href={`https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/${encodedFilename}`}
       className="btn btn-primary"
       target="_blank"
       rel="noreferrer"
@@ -205,7 +206,7 @@ export default function AssignmentPage() {
             question="What should be written as the answer for Exercise 1?"
             answer="I would write that Linear Regression is used here because Fare is a numeric output. Age, passenger class, and number of siblings/spouses are used as input features. The dataset is cleaned by filling missing values, then it is split into train and test sets. After training, the model is evaluated using Mean Squared Error and R2 Score. This helped me understand that regression is useful when the goal is to predict a quantity, not a category."
           />
-          <NotebookButton filename="03_Assignment_Linear_Regression_Titanic.ipynb">
+          <NotebookButton filename="Linear Regression on Titanic Dataset Python Program code.ipynb">
             Run Linear Regression Notebook in Colab
           </NotebookButton>
         </section>
@@ -224,7 +225,7 @@ export default function AssignmentPage() {
             question="How does classification differ from regression in this Titanic example?"
             answer="Regression predicts a continuous value such as Fare, while classification predicts a category such as Survived or Not Survived. In the Logistic Regression exercise, the model does not estimate a ticket price. It learns from passenger features and gives a class decision for survival. That is why the evaluation uses accuracy, confusion matrix, precision, recall, and classification report instead of only regression error."
           />
-          <NotebookButton filename="04_Assignment_Logistic_Regression_Titanic.ipynb">
+          <NotebookButton filename="Python demo snippet for Logistic Regression on the Titanic dataset.ipynb">
             Run Logistic Regression Notebook in Colab
           </NotebookButton>
         </section>
@@ -243,7 +244,7 @@ export default function AssignmentPage() {
             question="What is the main difference between Supervised Learning and Unsupervised Learning in this exercise?"
             answer="Supervised Learning uses a known answer during training. In this notebook, Logistic Regression uses Survived as the target and learns to predict survival. Unsupervised Learning does not use a target answer. K-Means only studies passenger features and forms natural groups based on similarity. So supervised learning is used for prediction, while unsupervised learning is used for pattern discovery."
           />
-          <NotebookButton filename="05_Assignment_Supervised_vs_Unsupervised_Titanic.ipynb">
+          <NotebookButton filename="Jupytor Notebook exercise.ipynb">
             Run Supervised vs Unsupervised Notebook in Colab
           </NotebookButton>
         </section>
