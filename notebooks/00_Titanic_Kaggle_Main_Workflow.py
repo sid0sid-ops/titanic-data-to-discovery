@@ -474,6 +474,7 @@ fig_parcat = px.parallel_categories(
     color_continuous_scale=px.colors.sequential.Viridis,
     title="Parallel Categories: Demographic Flow to Survival Outcome"
 )
+fig_parcat.update_traces(domain=dict(y=[0.12, 0.98]))
 fig_parcat.update_layout(
     autosize=False,
     height=700,
