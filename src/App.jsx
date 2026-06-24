@@ -22,7 +22,7 @@ export default function App() {
       if (activeKaggleSubTab === 'main') {
         return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'statistics', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'submission', 'relevance', 'mindset', 'reflection'];
       } else {
-        return ['setup', 'loading', 'features', 'training', 'tuning'];
+        return ['setup', 'exploration', 'features', 'validation', 'training', 'evaluation', 'extensions', 'export'];
       }
     } else {
       return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'relevance', 'mindset', 'reflection'];
@@ -53,11 +53,14 @@ export default function App() {
   ];
 
   const tfdfSidebarItems = [
-    { id: 'setup', name: '1. Setup & Environment', icon: 'fa-gears' },
-    { id: 'loading', name: '2. Data Ingestion', icon: 'fa-file-csv' },
-    { id: 'features', name: '3. Advanced Preprocessing', icon: 'fa-flask' },
-    { id: 'training', name: '4. Model Training', icon: 'fa-tree' },
-    { id: 'tuning', name: '5. Tuning & Submissions', icon: 'fa-circle-check' },
+    { id: 'setup', name: '1. Python & Data Audit', icon: 'fa-gears' },
+    { id: 'exploration', name: '2. Visualization & Stats', icon: 'fa-chart-simple' },
+    { id: 'features', name: '3. Safe Preprocessing', icon: 'fa-flask' },
+    { id: 'validation', name: '4. Validation Design', icon: 'fa-shield-halved' },
+    { id: 'training', name: '5. Model Training', icon: 'fa-tree' },
+    { id: 'evaluation', name: '6. Model Evaluation', icon: 'fa-square-poll-vertical' },
+    { id: 'extensions', name: '7. ML Extensions', icon: 'fa-diagram-project' },
+    { id: 'export', name: '8. Refit & Export', icon: 'fa-circle-check' },
   ];
 
   const openmlSidebarItems = [
@@ -516,23 +519,27 @@ export default function App() {
   const renderComparisonTable = () => {
     return (
       <div className="comparison-table-wrap" style={{ marginTop: '30px' }}>
+        <div className="insight-box" style={{ marginBottom: '14px' }}>
+          <strong>Validated Colab run:</strong> Generated on June 24, 2026 from the leakage-safe workflow. Selection uses training CV ROC-AUC; holdout metrics are reported for final comparison.
+        </div>
         {compError ? (
           <div style={{ padding: '10px', backgroundColor: '#fee2e2', color: '#b91c1c', fontSize: '13px', borderRadius: '4px', marginBottom: '10px' }}>
-            ⚠️ Loading live metrics failed. Displaying static baselines.
+            Loading saved reference metrics failed.
           </div>
         ) : null}
         <table className="comparison-table">
           <thead>
             <tr>
               <th>Model</th>
-              <th>CV Accuracy (Model Search)</th>
-              <th>Holdout Accuracy (Test)</th>
+              <th>CV ROC-AUC</th>
+              <th>Holdout Accuracy</th>
+              <th>Balanced Accuracy</th>
               <th>Precision</th>
               <th>Recall</th>
               <th>F1 Score</th>
-              <th>ROC-AUC</th>
-              <th>GridSearchCV Hyperparameters</th>
-              <th>Notes</th>
+              <th>Holdout ROC-AUC</th>
+              <th>Log Loss</th>
+              <th>Parameters</th>
             </tr>
           </thead>
           <tbody>
@@ -540,39 +547,42 @@ export default function App() {
               modelComparisons.map((item, idx) => (
                 <tr key={idx}>
                   <td><strong>{item.Model || item.model}</strong></td>
-                  <td>{item.CV_Accuracy ? (item.CV_Accuracy * 100).toFixed(2) + '%' : 'N/A'}</td>
-                  <td>{(item.Accuracy ? (item.Accuracy * 100).toFixed(2) + '%' : '0.00%')}</td>
+                  <td>{(item["CV ROC-AUC"] ?? item.CV_Accuracy ?? 0).toFixed(4)}</td>
+                  <td>{((item["Holdout Accuracy"] ?? item.Accuracy ?? 0) * 100).toFixed(2)}%</td>
+                  <td>{(item["Balanced Accuracy"] ?? 0).toFixed(4)}</td>
                   <td>{(item.Precision || item.precision || 0).toFixed(4)}</td>
                   <td>{(item.Recall || item.recall || 0).toFixed(4)}</td>
                   <td>{(item.F1 || item.f1 || 0).toFixed(4)}</td>
-                  <td>{(item["ROC-AUC"] || item.roc_auc || 0).toFixed(4)}</td>
-                  <td><code>{item.Best_Params || 'None'}</code></td>
-                  <td>{item.Notes || item.notes}</td>
+                  <td>{(item["Holdout ROC-AUC"] ?? item["ROC-AUC"] ?? item.roc_auc ?? 0).toFixed(4)}</td>
+                  <td>{(item["Log Loss"] ?? 0).toFixed(4)}</td>
+                  <td><code>{JSON.stringify(item.Parameters ?? item.Best_Params ?? {})}</code></td>
                 </tr>
               ))
             ) : (
               <>
                 <tr>
                   <td><strong>Logistic Regression</strong></td>
-                  <td>84.28%</td>
-                  <td>77.65%</td>
-                  <td>0.7385</td>
-                  <td>0.6957</td>
-                  <td>0.7164</td>
-                  <td>0.8342</td>
-                  <td><code>C=0.1</code></td>
-                  <td>Baseline linear classifier.</td>
+                  <td>0.8739</td>
+                  <td>83.24%</td>
+                  <td>0.8177</td>
+                  <td>0.8000</td>
+                  <td>0.7536</td>
+                  <td>0.7761</td>
+                  <td>0.8697</td>
+                  <td>0.4245</td>
+                  <td><code>{'{"model__C":1.0}'}</code></td>
                 </tr>
                 <tr>
                   <td><strong>Random Forest</strong></td>
-                  <td>84.70%</td>
-                  <td>81.56%</td>
-                  <td>0.8103</td>
-                  <td>0.6812</td>
-                  <td>0.7402</td>
-                  <td>0.8659</td>
-                  <td><code>max_depth=8, n_estimators=50</code></td>
-                  <td>Robust ensemble.</td>
+                  <td>0.8872</td>
+                  <td>78.77%</td>
+                  <td>0.7625</td>
+                  <td>0.7627</td>
+                  <td>0.6522</td>
+                  <td>0.7031</td>
+                  <td>0.8431</td>
+                  <td>0.4504</td>
+                  <td><code>{'{"max_depth":null,"min_samples_leaf":3}'}</code></td>
                 </tr>
               </>
             )}
@@ -832,9 +842,9 @@ export default function App() {
                     <span className="hero-tag">TITANIC MODEL COMPARISON MODULE</span>
                     <h1>Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, TensorFlow NN</h1>
                     <p className="hero-description">
-                      I compared multiple machine learning models on the Titanic Kaggle dataset to observe how different algorithms affect survival prediction. I used Logistic Regression as a simple baseline, Decision Tree and Random Forest as tree-based models, YDF as a modern decision forest framework, XGBoost, LightGBM, and CatBoost as advanced gradient boosting models, and a TensorFlow deep learning neural network.
+                      This module uses Python, Pandas, visualization, statistics, leakage-safe preprocessing, supervised learning, and model evaluation to compare linear, neighbor, tree, forest, boosting, YDF, and TensorFlow classifiers on the Titanic Kaggle dataset.
                       <br /><br />
-                      All models were trained and tested on the same train-validation split to make the comparison fair. I evaluated them using accuracy, precision, recall, F1 score, and ROC-AUC. The best model was selected based on validation performance and then used to generate predictions for the Kaggle test dataset.
+                      Five-fold stratified cross-validation on the training partition selects the algorithm by ROC-AUC. One untouched holdout then reports accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, and log loss. Separate notebook exercises cover Linear Regression, KNN, K-Means clustering, neural networks, and anomaly detection for cyber-security concepts without mixing unlike tasks into the survival leaderboard.
                     </p>
                     <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                       <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
@@ -848,12 +858,12 @@ export default function App() {
                         <span className="hero-stat-lbl">Train Rows</span>
                       </div>
                       <div className="hero-stat-card">
-                        <span className="hero-stat-val">81.33%</span>
-                        <span className="hero-stat-lbl">Out-of-Bag Accuracy</span>
+                        <span className="hero-stat-val">5</span>
+                        <span className="hero-stat-lbl">Stratified CV Folds</span>
                       </div>
                       <div className="hero-stat-card">
-                        <span className="hero-stat-val">Auto</span>
-                        <span className="hero-stat-lbl">Decision Tree Splits</span>
+                        <span className="hero-stat-val">8</span>
+                        <span className="hero-stat-lbl">Evaluation Metrics</span>
                       </div>
                     </div>
                   </section>

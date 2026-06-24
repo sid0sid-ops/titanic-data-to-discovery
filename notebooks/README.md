@@ -18,9 +18,12 @@ This directory contains the Google Colab-ready notebooks for the Titanic Data Sc
 * **File:** [01_Titanic_Model_Comparison_Project.ipynb](01_Titanic_Model_Comparison_Project.ipynb)
 * **Purpose:** Implements a comparative machine learning study evaluating multiple classification algorithms on the Titanic dataset:
   * Ingests local train/test CSV splits and constructs validation partitions
-  * Engineers custom demographic and family features
-  * Trains and evaluates Logistic Regression, Decision Tree, Random Forest, Google YDF, XGBoost, LightGBM, and CatBoost
-  * Selects the optimal model based on accuracy, precision, recall, F1, and ROC-AUC, exporting test predictions to `submissions/submission_tfdf_tuned.csv`.
+  * Engineers label-free demographic, family, cabin, ticket-prefix, and fare features
+  * Fits preprocessing inside validation folds to prevent imputation, scaling, encoding, and target leakage
+  * Trains and evaluates Logistic Regression, KNN, Decision Tree, Random Forest, Google YDF, XGBoost, LightGBM, CatBoost, and a TensorFlow neural network
+  * Selects the algorithm by five-fold training CV ROC-AUC, then reports accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, and log loss on one untouched holdout
+  * Includes separate Linear Regression, K-Means, and Isolation Forest exercises for regression, unsupervised learning, and cyber-security anomaly-detection concepts
+  * Refits the selected model on all labeled rows and exports `submissions/submission_model_comparison.csv`.
 
 ## Reference Notebooks
 

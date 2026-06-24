@@ -10,9 +10,9 @@ export const notebookGuide = [
   {
     id: "01_Titanic_Model_Comparison_Project.ipynb",
     title: "01: Titanic Model Comparison Project",
-    purpose: "Model comparison notebook evaluating Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, and CatBoost on the Kaggle dataset.",
+    purpose: "Leakage-safe model comparison covering Logistic Regression, KNN, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, and TensorFlow, plus separate regression, clustering, and anomaly-detection exercises.",
     dataset: "Kaggle Dataset (kaggle/train.csv, kaggle/test.csv)",
-    keyOutput: "submissions/submission_tfdf_tuned.csv",
+    keyOutput: "submissions/submission_model_comparison.csv",
     colabUrl: "https://colab.research.google.com/github/sid0sid-ops/titanic-data-to-discovery/blob/main/notebooks/01_Titanic_Model_Comparison_Project.ipynb"
   },
   {

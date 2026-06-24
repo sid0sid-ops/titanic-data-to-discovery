@@ -1,365 +1,801 @@
-# Logistic Regression, Decision Tree, Random Forest,
-# YDF, XGBoost, LightGBM, CatBoost
-# 1. Load Kaggle train.csv and test.csv
-# 2. Clean and engineer features
-# 3. Split train.csv into training + validation
-# 4. Train many models
-# 5. Compare accuracy, precision, recall, F1, ROC-AUC
-# 6. Pick best model
-# 7. Predict Kaggle test.csv
-# 8. Create submission.csv
-
+# ruff: noqa: E402 - Colab installs optional packages before importing them.
+import importlib
+import subprocess
 import sys
-import os
-import re
-import warnings
-warnings.filterwarnings("ignore")
 
-# Install YDF, XGBoost, LightGBM, CatBoost if not present
-libs = ["ydf", "xgboost", "lightgbm", "catboost"]
-for lib in libs:
+REQUIRED_PACKAGES = {
+    "ydf": "ydf",
+    "xgboost": "xgboost",
+    "lightgbm": "lightgbm",
+    "catboost": "catboost",
+    "tensorflow": "tensorflow",
+}
+for module_name, package_name in REQUIRED_PACKAGES.items():
     try:
-        __import__(lib)
+        importlib.import_module(module_name)
     except ImportError:
-        print(f"Installing {lib}...")
-        !{sys.executable} -m pip install {lib} -U --quiet
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-q", package_name]
+        )
 
-import pandas as pd
-import numpy as np
+import os
+import random
+import warnings
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-
-print("✓ Step 1: Libraries and environment successfully set up!")
-
-
-possible_paths = ["../kaggle/", "./kaggle/", "../data/", "./data/", "/content/", "/content/kaggle/"]
-train_df, test_df = None, None
-
-for bp in possible_paths:
-    if os.path.exists(os.path.join(bp, "train.csv")):
-        train_df = pd.read_csv(os.path.join(bp, "train.csv"))
-        test_df = pd.read_csv(os.path.join(bp, "test.csv"))
-        print(f"✓ Loaded datasets from local path: {bp}")
-        break
-
-if train_df is None:
-    print("Kaggle datasets not found locally. Attempting to download from remote GitHub repository fallback...")
-    try:
-        train_df = pd.read_csv("https://raw.githubusercontent.com/sid0sid-ops/titanic-data-to-discovery/main/kaggle/train.csv")
-        test_df = pd.read_csv("https://raw.githubusercontent.com/sid0sid-ops/titanic-data-to-discovery/main/kaggle/test.csv")
-        print("✓ Loaded datasets from remote GitHub repository fallback!")
-    except Exception as e:
-        print(f"Remote download failed: {e}")
-
-if train_df is None:
-    raise FileNotFoundError("Could not load train.csv and test.csv from local paths or remote GitHub fallbacks.")
-
-print("Train shape:", train_df.shape)
-print("Test shape:", test_df.shape)
-
-
-def advanced_ml_feature_engineering(train, test):
-    train_copy = train.copy()
-    test_copy = test.copy()
-    test_copy["Survived"] = np.nan
-    combined = pd.concat([train_copy, test_copy], ignore_index=True)
-
-    combined["FamilySize"] = combined["SibSp"] + combined["Parch"] + 1
-
-    combined["Title"] = combined["Name"].str.extract(r",\s*([^.]+)\.")
-    title_mapping = {
-        "Mr": "Mr", "Mrs": "Mrs", "Miss": "Miss", "Master": "Master",
-        "Mme": "Mrs", "Ms": "Miss", "Mlle": "Miss", "Dr": "Officer", 
-        "Rev": "Officer", "Col": "Officer", "Major": "Officer",
-        "Lady": "Royalty", "the Countess": "Royalty", "Capt": "Officer",
-        "Don": "Royalty", "Jonkheer": "Royalty", "Sir": "Royalty", "Dona": "Royalty"
-    }
-    combined["Title"] = combined["Title"].map(title_mapping).fillna("Rare")
-    combined["Deck"] = combined["Cabin"].str[0].fillna("Unknown")
-
-    ticket_survival = {}
-    for ticket, group in combined.groupby("Ticket"):
-        if len(group) > 1:
-            for idx, row in group.iterrows():
-                other_members = group.drop(idx)
-                train_others = other_members.dropna(subset=["Survived"])
-                if len(train_others) > 0:
-                    ticket_survival[idx] = train_others["Survived"].mean()
-                else:
-                    ticket_survival[idx] = np.nan
-        else:
-            ticket_survival[group.index[0]] = np.nan
-
-    combined["Group_Survival_Rate"] = pd.Series(ticket_survival)
-
-    train_feat = combined.iloc[:len(train)].copy()
-    test_feat = combined.iloc[len(train):].copy().drop(columns=["Survived"])
-    return train_feat, test_feat
-
-train_prep, test_prep = advanced_ml_feature_engineering(train_df, test_df)
-print("✓ Features engineered successfully.")
-
-
-from sklearn.model_selection import train_test_split
-
-features = ["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked", 
-            "Title", "Deck", "FamilySize", "Group_Survival_Rate"]
-
-X = train_prep[features].copy()
-y = train_prep["Survived"].astype(int)
-
-# Perform 80/20 train/validation stratified split
-X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.20, random_state=42, stratify=y
-)
-
-print("Train shape:", X_train.shape, "| Validation shape:", X_val.shape)
-
-
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-
-# Define baseline scikit-learn preprocessing
-num_cols = ["Age", "SibSp", "Parch", "Fare", "FamilySize", "Group_Survival_Rate"]
-cat_cols = ["Pclass", "Sex", "Embarked", "Title", "Deck"]
-
-preprocessor = ColumnTransformer(transformers=[
-    ("num", Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
-    ]), num_cols),
-    ("cat", Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore", drop="first"))
-    ]), cat_cols)
-])
-
-# Fit and transform training / validation for non-YDF classifiers
-X_train_proc = preprocessor.fit_transform(X_train)
-X_val_proc = preprocessor.transform(X_val)
-
-# Dictionary to store all model prediction arrays and hyperparams
-cv_accuracies = {}
-holdout_metrics = {}
-best_params = {}
-
-# Import baseline models
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-
-# A. Logistic Regression
-lr_grid = GridSearchCV(
-    LogisticRegression(max_iter=1000, solver="liblinear", random_state=42),
-    {"C": [0.1, 1.0, 10.0]}, cv=5
-)
-lr_grid.fit(X_train_proc, y_train)
-cv_accuracies["Logistic Regression"] = lr_grid.best_score_
-best_params["Logistic Regression"] = str(lr_grid.best_params_)
-holdout_metrics["Logistic Regression"] = lr_grid.best_estimator_
-
-# B. Decision Tree
-dt_grid = GridSearchCV(
-    DecisionTreeClassifier(random_state=42),
-    {"max_depth": [3, 5, 8]}, cv=5
-)
-dt_grid.fit(X_train_proc, y_train)
-cv_accuracies["Decision Tree"] = dt_grid.best_score_
-best_params["Decision Tree"] = str(dt_grid.best_params_)
-holdout_metrics["Decision Tree"] = dt_grid.best_estimator_
-
-# C. Random Forest
-rf_grid = GridSearchCV(
-    RandomForestClassifier(random_state=42),
-    {"n_estimators": [50, 100], "max_depth": [4, 6, 8]}, cv=5
-)
-rf_grid.fit(X_train_proc, y_train)
-cv_accuracies["Random Forest"] = rf_grid.best_score_
-best_params["Random Forest"] = str(rf_grid.best_params_)
-holdout_metrics["Random Forest"] = rf_grid.best_estimator_
-
-# D. Google YDF Models (Random Forest & GBT)
-import ydf
-train_prep_ydf = train_prep.iloc[X_train.index].copy()
-train_prep_ydf["Survived"] = train_prep_ydf["Survived"].astype(int)
-
-ydf_rf = ydf.RandomForestLearner(label="Survived", features=features, random_seed=42).train(train_prep_ydf)
-ydf_gbt = ydf.GradientBoostedTreesLearner(
-    label="Survived", features=features, 
-    tuner=ydf.RandomSearchTuner(num_trials=20), random_seed=42
-).train(train_prep_ydf)
-
-cv_accuracies["YDF Random Forest"] = ydf_rf.self_evaluation().accuracy
-best_params["YDF Random Forest"] = "OOB Estimate"
-holdout_metrics["YDF Random Forest"] = ydf_rf
-
-cv_accuracies["YDF Gradient Boosted Trees"] = ydf_gbt.self_evaluation().accuracy
-best_params["YDF Gradient Boosted Trees"] = "Tuned GBT Folds"
-holdout_metrics["YDF Gradient Boosted Trees"] = ydf_gbt
-
-# E. XGBoost
-import xgboost as xgb
-xgb_clf = GridSearchCV(
-    xgb.XGBClassifier(eval_metric="logloss", random_state=42),
-    {"max_depth": [3, 4, 5], "learning_rate": [0.05, 0.1]}, cv=5
-)
-xgb_clf.fit(X_train_proc, y_train)
-cv_accuracies["XGBoost"] = xgb_clf.best_score_
-best_params["XGBoost"] = str(xgb_clf.best_params_)
-holdout_metrics["XGBoost"] = xgb_clf.best_estimator_
-
-# F. LightGBM
-import lightgbm as lgb
-lgb_clf = GridSearchCV(
-    lgb.LGBMClassifier(verbosity=-1, random_state=42),
-    {"max_depth": [3, 4], "learning_rate": [0.05, 0.1]}, cv=5
-)
-lgb_clf.fit(X_train_proc, y_train)
-cv_accuracies["LightGBM"] = lgb_clf.best_score_
-best_params["LightGBM"] = str(lgb_clf.best_params_)
-holdout_metrics["LightGBM"] = lgb_clf.best_estimator_
-
-# G. CatBoost
-from catboost import CatBoostClassifier
-cb_grid = GridSearchCV(
-    CatBoostClassifier(verbose=0, random_seed=42),
-    {"depth": [4, 6], "learning_rate": [0.05, 0.1]}, cv=5
-)
-cb_grid.fit(X_train_proc, y_train)
-cv_accuracies["CatBoost"] = cb_grid.best_score_
-best_params["CatBoost"] = str(cb_grid.best_params_)
-holdout_metrics["CatBoost"] = cb_grid.best_estimator_
-
-# H. TensorFlow Keras Neural Network (Deep Learning with TPU support)
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Input
-from tensorflow.keras.optimizers import Adam
+import ydf
+from catboost import CatBoostClassifier
+from IPython.display import display
+from lightgbm import LGBMClassifier
+from scipy.stats import chi2_contingency, pointbiserialr
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.cluster import KMeans
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import (
+    IsolationForest,
+    RandomForestClassifier,
+    VotingClassifier,
+)
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    RocCurveDisplay,
+    accuracy_score,
+    balanced_accuracy_score,
+    f1_score,
+    log_loss,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+    roc_auc_score,
+)
+from sklearn.model_selection import (
+    GridSearchCV,
+    StratifiedKFold,
+    cross_val_score,
+    train_test_split,
+)
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
 
-# Detect and initialize TPU if available in Colab
-try:
-    resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
-    tf.config.experimental_connect_to_cluster(resolver)
-    tf.tpu.experimental.initialize_tpu_system(resolver)
-    tpu_strategy = tf.distribute.TPUStrategy(resolver)
-    print("✓ Running Keras MLP on TPU inside Google Colab!")
-except Exception:
-    tpu_strategy = tf.distribute.get_strategy()
-    print("Running on default CPU/GPU.")
+warnings.filterwarnings("ignore")
+RANDOM_STATE = 42
+np.random.seed(RANDOM_STATE)
+random.seed(RANDOM_STATE)
+tf.keras.utils.set_random_seed(RANDOM_STATE)
+tf.get_logger().setLevel("ERROR")
+print("Environment ready.")
 
-def build_keras_model():
-    model = Sequential([
-        Input(shape=(X_train_proc.shape[1],)),
-        Dense(64, activation="relu"),
-        Dropout(0.2),
-        Dense(32, activation="relu"),
-        Dropout(0.2),
-        Dense(1, activation="sigmoid")
+def load_kaggle_data():
+    roots = [
+        "../kaggle",
+        "./kaggle",
+        "../data",
+        "./data",
+        "/content",
+        "/content/kaggle",
+    ]
+    for root in roots:
+        train_path = os.path.join(root, "train.csv")
+        test_path = os.path.join(root, "test.csv")
+        if os.path.exists(train_path) and os.path.exists(test_path):
+            return pd.read_csv(train_path), pd.read_csv(test_path)
+
+    base = (
+        "https://raw.githubusercontent.com/sid0sid-ops/"
+        "titanic-data-to-discovery/main/kaggle"
+    )
+    return (
+        pd.read_csv(f"{base}/train.csv"),
+        pd.read_csv(f"{base}/test.csv"),
+    )
+
+
+train_df, test_df = load_kaggle_data()
+required_train = {
+    "PassengerId", "Survived", "Pclass", "Name", "Sex", "Age",
+    "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked",
+}
+missing = required_train.difference(train_df.columns)
+if missing:
+    raise ValueError(f"Unexpected Kaggle schema; missing columns: {sorted(missing)}")
+if "Survived" in test_df.columns:
+    raise ValueError("The Kaggle test file must not contain the Survived target.")
+
+audit = pd.DataFrame({
+    "dtype": train_df.dtypes.astype(str),
+    "missing": train_df.isna().sum(),
+    "missing_pct": train_df.isna().mean().mul(100).round(2),
+    "unique": train_df.nunique(dropna=True),
+}).sort_values("missing_pct", ascending=False)
+print("Train:", train_df.shape, "| Test:", test_df.shape)
+display(audit)
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+sns.countplot(data=train_df, x="Survived", ax=axes[0])
+axes[0].set_title("Survival class balance")
+sns.barplot(data=train_df, x="Sex", y="Survived", errorbar=("ci", 95), ax=axes[1])
+axes[1].set_title("Survival rate by sex (95% CI)")
+sns.barplot(data=train_df, x="Pclass", y="Survived", errorbar=("ci", 95), ax=axes[2])
+axes[2].set_title("Survival rate by passenger class (95% CI)")
+plt.tight_layout()
+plt.show()
+
+sex_table = pd.crosstab(train_df["Sex"], train_df["Survived"])
+chi2, chi2_p, _, _ = chi2_contingency(sex_table)
+age_rows = train_df[["Age", "Survived"]].dropna()
+fare_rows = train_df[["Fare", "Survived"]].dropna()
+age_r, age_p = pointbiserialr(age_rows["Survived"], age_rows["Age"])
+fare_r, fare_p = pointbiserialr(fare_rows["Survived"], fare_rows["Fare"])
+
+statistics_results = pd.DataFrame([
+    {
+        "test": "Chi-square: Sex vs Survived",
+        "statistic": chi2,
+        "p_value": chi2_p,
+        "interpretation": "Evidence of association" if chi2_p < 0.05 else "No evidence",
+    },
+    {
+        "test": "Point-biserial: Age vs Survived",
+        "statistic": age_r,
+        "p_value": age_p,
+        "interpretation": "Linear association" if age_p < 0.05 else "No evidence",
+    },
+    {
+        "test": "Point-biserial: Fare vs Survived",
+        "statistic": fare_r,
+        "p_value": fare_p,
+        "interpretation": "Linear association" if fare_p < 0.05 else "No evidence",
+    },
+])
+display(statistics_results.round(4))
+
+TITLE_MAP = {
+    "Mme": "Mrs", "Ms": "Miss", "Mlle": "Miss",
+    "Dr": "Officer", "Rev": "Officer", "Col": "Officer",
+    "Major": "Officer", "Capt": "Officer",
+    "Lady": "Royalty", "the Countess": "Royalty",
+    "Don": "Royalty", "Jonkheer": "Royalty",
+    "Sir": "Royalty", "Dona": "Royalty",
+}
+
+
+def engineer_features(frame):
+    result = frame.copy()
+    result["FamilySize"] = result["SibSp"] + result["Parch"] + 1
+    result["IsAlone"] = (result["FamilySize"] == 1).astype(int)
+    result["Title"] = result["Name"].str.extract(r",\s*([^.]+)\.", expand=False)
+    result["Title"] = result["Title"].replace(TITLE_MAP)
+    common_titles = {"Mr", "Mrs", "Miss", "Master", "Officer", "Royalty"}
+    result["Title"] = result["Title"].where(
+        result["Title"].isin(common_titles), "Other"
+    )
+    result["Deck"] = result["Cabin"].str[0].fillna("Unknown")
+    result["CabinKnown"] = result["Cabin"].notna().astype(int)
+    result["TicketPrefix"] = (
+        result["Ticket"]
+        .str.replace(r"\d+", "", regex=True)
+        .str.replace(r"[\s./]+", "", regex=True)
+        .replace("", "NONE")
+    )
+    result["FarePerPerson"] = result["Fare"] / result["FamilySize"].clip(lower=1)
+    return result
+
+
+train_features = engineer_features(train_df)
+test_features = engineer_features(test_df)
+feature_columns = [
+    "Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked",
+    "FamilySize", "IsAlone", "Title", "Deck", "CabinKnown", "TicketPrefix",
+    "FarePerPerson",
+]
+X = train_features[feature_columns]
+y = train_features["Survived"].astype(int)
+X_train, X_holdout, y_train, y_holdout = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=RANDOM_STATE,
+    stratify=y,
+)
+print("Training:", X_train.shape, "| Untouched holdout:", X_holdout.shape)
+print("Class rates:", y_train.mean().round(3), y_holdout.mean().round(3))
+
+class GroupedAgeImputer(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        frame = X.copy()
+        self.group_medians_ = frame.groupby(
+            ["Pclass", "Sex"], observed=True
+        )["Age"].median()
+        self.global_median_ = frame["Age"].median()
+        return self
+
+    def transform(self, X):
+        frame = X.copy()
+        missing_age = frame["Age"].isna()
+        group_keys = pd.MultiIndex.from_frame(
+            frame.loc[missing_age, ["Pclass", "Sex"]]
+        )
+        grouped_values = self.group_medians_.reindex(group_keys).to_numpy()
+        frame.loc[missing_age, "Age"] = pd.Series(
+            grouped_values,
+            index=frame.index[missing_age],
+        ).fillna(self.global_median_)
+        return frame
+
+
+numeric_features = [
+    "Age", "SibSp", "Parch", "Fare", "FamilySize", "IsAlone",
+    "CabinKnown", "FarePerPerson",
+]
+categorical_features = [
+    "Pclass", "Sex", "Embarked", "Title", "Deck", "TicketPrefix",
+]
+preprocessor = ColumnTransformer([
+    (
+        "numeric",
+        Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]),
+        numeric_features,
+    ),
+    (
+        "categorical",
+        Pipeline([
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            (
+                "encoder",
+                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+            ),
+        ]),
+        categorical_features,
+    ),
+])
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+
+def make_model_pipeline(estimator, selected_preprocessor=None):
+    return Pipeline([
+        ("grouped_age", GroupedAgeImputer()),
+        (
+            "preprocessor",
+            clone(selected_preprocessor or preprocessor),
+        ),
+        ("model", estimator),
     ])
-    model.compile(optimizer=Adam(learning_rate=0.001), loss="binary_crossentropy", metrics=["accuracy"])
+
+
+baseline_columns = ["Pclass", "Sex", "Age", "Fare", "Embarked"]
+baseline_numeric = ["Age", "Fare"]
+baseline_categorical = ["Pclass", "Sex", "Embarked"]
+baseline_preprocessor = ColumnTransformer([
+    (
+        "numeric",
+        Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]),
+        baseline_numeric,
+    ),
+    (
+        "categorical",
+        Pipeline([
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
+        ]),
+        baseline_categorical,
+    ),
+])
+basic_pipeline = Pipeline([
+    ("preprocessor", clone(baseline_preprocessor)),
+    ("model", LogisticRegression(max_iter=2000, random_state=RANDOM_STATE)),
+])
+grouped_age_pipeline = Pipeline([
+    ("grouped_age", GroupedAgeImputer()),
+    ("preprocessor", clone(baseline_preprocessor)),
+    ("model", LogisticRegression(max_iter=2000, random_state=RANDOM_STATE)),
+])
+enhanced_pipeline = make_model_pipeline(
+    LogisticRegression(max_iter=2000, random_state=RANDOM_STATE)
+)
+impact_rows = []
+for stage, pipeline, stage_X in [
+    ("Basic median preprocessing", basic_pipeline, X_train[baseline_columns]),
+    (
+        "Grouped Age by Pclass + Sex",
+        grouped_age_pipeline,
+        X_train[baseline_columns],
+    ),
+    ("Full feature engineering", enhanced_pipeline, X_train),
+]:
+    accuracy_scores = cross_val_score(
+        pipeline, stage_X, y_train, scoring="accuracy", cv=cv, n_jobs=-1
+    )
+    auc_scores = cross_val_score(
+        pipeline, stage_X, y_train, scoring="roc_auc", cv=cv, n_jobs=-1
+    )
+    impact_rows.append({
+        "Stage": stage,
+        "Mean CV Accuracy": accuracy_scores.mean(),
+        "Accuracy Change": accuracy_scores.mean(),
+        "Mean CV ROC-AUC": auc_scores.mean(),
+        "ROC-AUC Change": auc_scores.mean(),
+    })
+impact_df = pd.DataFrame(impact_rows)
+impact_df["Accuracy Change"] -= impact_df.loc[0, "Mean CV Accuracy"]
+impact_df["ROC-AUC Change"] -= impact_df.loc[0, "Mean CV ROC-AUC"]
+display(impact_df.round(4))
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+sns.barplot(data=impact_df, x="Mean CV Accuracy", y="Stage", ax=axes[0])
+axes[0].set_title("Accuracy change by preprocessing stage")
+sns.barplot(data=impact_df, x="Mean CV ROC-AUC", y="Stage", ax=axes[1])
+axes[1].set_title("ROC-AUC change by preprocessing stage")
+plt.tight_layout()
+plt.show()
+
+searches = {
+    "Logistic Regression": (
+        LogisticRegression(max_iter=2000, random_state=RANDOM_STATE),
+        {"model__C": [0.1, 1.0, 10.0]},
+    ),
+    "KNN": (
+        KNeighborsClassifier(),
+        {"model__n_neighbors": [5, 9, 15], "model__weights": ["uniform", "distance"]},
+    ),
+    "Decision Tree": (
+        DecisionTreeClassifier(random_state=RANDOM_STATE),
+        {
+            "model__max_depth": [3, 5, 8, None],
+            "model__min_samples_leaf": [1, 5, 10],
+        },
+    ),
+    "Random Forest": (
+        RandomForestClassifier(
+            n_estimators=300,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+        ),
+        {
+            "model__max_depth": [5, 8, None],
+            "model__min_samples_leaf": [1, 3, 5],
+        },
+    ),
+    "XGBoost": (
+        XGBClassifier(
+            n_estimators=300,
+            eval_metric="logloss",
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+        ),
+        {
+            "model__max_depth": [3, 5],
+            "model__learning_rate": [0.03, 0.1],
+        },
+    ),
+    "LightGBM": (
+        LGBMClassifier(
+            n_estimators=300,
+            verbosity=-1,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+        ),
+        {
+            "model__num_leaves": [15, 31],
+            "model__learning_rate": [0.03, 0.1],
+        },
+    ),
+    "CatBoost": (
+        CatBoostClassifier(
+            iterations=300,
+            verbose=0,
+            random_seed=RANDOM_STATE,
+        ),
+        {
+            "model__depth": [4, 6],
+            "model__learning_rate": [0.03, 0.1],
+        },
+    ),
+}
+
+fitted_models = {}
+cv_scores = {}
+best_parameters = {}
+for name, (estimator, grid) in searches.items():
+    search = GridSearchCV(
+        make_model_pipeline(estimator),
+        grid,
+        scoring="roc_auc",
+        cv=cv,
+        n_jobs=-1,
+        refit=True,
+    )
+    search.fit(X_train, y_train)
+    fitted_models[name] = search.best_estimator_
+    cv_scores[name] = search.best_score_
+    best_parameters[name] = search.best_params_
+    print(f"{name}: CV ROC-AUC={search.best_score_:.4f}")
+
+ensemble_candidates = sorted(
+    searches,
+    key=lambda model_name: cv_scores[model_name],
+    reverse=True,
+)[:3]
+ensemble = VotingClassifier(
+    estimators=[
+        (
+            f"model_{index}",
+            clone(fitted_models[model_name]),
+        )
+        for index, model_name in enumerate(ensemble_candidates)
+    ],
+    voting="soft",
+    n_jobs=-1,
+)
+cv_scores["Soft Voting Ensemble"] = cross_val_score(
+    ensemble,
+    X_train,
+    y_train,
+    scoring="roc_auc",
+    cv=cv,
+    n_jobs=-1,
+).mean()
+ensemble.fit(X_train, y_train)
+fitted_models["Soft Voting Ensemble"] = ensemble
+best_parameters["Soft Voting Ensemble"] = {
+    "members": ensemble_candidates,
+    "voting": "soft",
+}
+print(
+    "Soft Voting Ensemble:",
+    ensemble_candidates,
+    f"CV ROC-AUC={cv_scores['Soft Voting Ensemble']:.4f}",
+)
+
+def prepare_ydf_frame(frame, target=None):
+    result = frame.copy()
+    for column in categorical_features:
+        result[column] = result[column].astype("string").fillna("Unknown")
+    result["Pclass"] = "Class_" + result["Pclass"]
+    if target is not None:
+        result["Survived"] = np.asarray(target, dtype=int)
+    return result
+
+
+def ydf_cross_validated_auc(learner_factory):
+    fold_scores = []
+    for train_idx, valid_idx in cv.split(X_train, y_train):
+        fold_age_imputer = GroupedAgeImputer().fit(X_train.iloc[train_idx])
+        fold_train_features = fold_age_imputer.transform(
+            X_train.iloc[train_idx]
+        )
+        fold_valid_features = fold_age_imputer.transform(
+            X_train.iloc[valid_idx]
+        )
+        fold_train = prepare_ydf_frame(
+            fold_train_features,
+            y_train.iloc[train_idx],
+        )
+        fold_valid = prepare_ydf_frame(fold_valid_features)
+        fold_model = learner_factory().train(fold_train)
+        fold_probability = fold_model.predict(fold_valid)
+        fold_scores.append(
+            roc_auc_score(y_train.iloc[valid_idx], fold_probability)
+        )
+    return float(np.mean(fold_scores))
+
+
+ydf_factories = {
+    "YDF Random Forest": lambda: ydf.RandomForestLearner(
+        label="Survived",
+        num_trees=300,
+        random_seed=RANDOM_STATE,
+    ),
+    "YDF Gradient Boosted Trees": lambda: ydf.GradientBoostedTreesLearner(
+        label="Survived",
+        num_trees=300,
+        max_depth=4,
+        shrinkage=0.05,
+        random_seed=RANDOM_STATE,
+    ),
+}
+for name, factory in ydf_factories.items():
+    cv_scores[name] = ydf_cross_validated_auc(factory)
+    ydf_age_imputer = GroupedAgeImputer().fit(X_train)
+    ydf_train = ydf_age_imputer.transform(X_train)
+    ydf_model = factory().train(prepare_ydf_frame(ydf_train, y_train))
+    fitted_models[name] = (ydf_age_imputer, ydf_model)
+    best_parameters[name] = {"protocol": "fixed reproducible configuration"}
+    print(f"{name}: CV ROC-AUC={cv_scores[name]:.4f}")
+
+def build_neural_network(input_width):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(input_width,)),
+        tf.keras.layers.Dense(64, activation="relu"),
+        tf.keras.layers.Dropout(0.25),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dropout(0.20),
+        tf.keras.layers.Dense(1, activation="sigmoid"),
+    ])
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        loss="binary_crossentropy",
+        metrics=[tf.keras.metrics.AUC(name="auc")],
+    )
     return model
 
-with tpu_strategy.scope():
-    nn_clf = build_keras_model()
 
-X_train_proc_dense = X_train_proc.toarray() if hasattr(X_train_proc, "toarray") else X_train_proc
-X_val_proc_dense = X_val_proc.toarray() if hasattr(X_val_proc, "toarray") else X_val_proc
+nn_fold_scores = []
+for fold_number, (train_idx, valid_idx) in enumerate(cv.split(X_train, y_train), 1):
+    fold_age_imputer = GroupedAgeImputer().fit(X_train.iloc[train_idx])
+    fold_train_features = fold_age_imputer.transform(
+        X_train.iloc[train_idx]
+    )
+    fold_valid_features = fold_age_imputer.transform(
+        X_train.iloc[valid_idx]
+    )
+    fold_preprocessor = clone(preprocessor)
+    fold_X_train = fold_preprocessor.fit_transform(fold_train_features)
+    fold_X_valid = fold_preprocessor.transform(fold_valid_features)
+    tf.keras.backend.clear_session()
+    tf.keras.utils.set_random_seed(RANDOM_STATE + fold_number)
+    fold_model = build_neural_network(fold_X_train.shape[1])
+    fold_model.fit(
+        fold_X_train,
+        y_train.iloc[train_idx],
+        validation_data=(fold_X_valid, y_train.iloc[valid_idx]),
+        epochs=100,
+        batch_size=32,
+        callbacks=[
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                patience=10,
+                restore_best_weights=True,
+            )
+        ],
+        verbose=0,
+    )
+    fold_probability = fold_model.predict(fold_X_valid, verbose=0).ravel()
+    nn_fold_scores.append(
+        roc_auc_score(y_train.iloc[valid_idx], fold_probability)
+    )
 
-nn_history = nn_clf.fit(
-    X_train_proc_dense, y_train, 
-    epochs=60, batch_size=32, 
-    validation_data=(X_val_proc_dense, y_val), 
-    verbose=0
+nn_age_imputer = GroupedAgeImputer().fit(X_train)
+nn_train_features = nn_age_imputer.transform(X_train)
+nn_holdout_features = nn_age_imputer.transform(X_holdout)
+nn_preprocessor = clone(preprocessor)
+nn_X_train = nn_preprocessor.fit_transform(nn_train_features)
+nn_X_holdout = nn_preprocessor.transform(nn_holdout_features)
+tf.keras.backend.clear_session()
+tf.keras.utils.set_random_seed(RANDOM_STATE)
+nn_model = build_neural_network(nn_X_train.shape[1])
+nn_history = nn_model.fit(
+    nn_X_train,
+    y_train,
+    validation_split=0.15,
+    epochs=100,
+    batch_size=32,
+    callbacks=[
+        tf.keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            patience=10,
+            restore_best_weights=True,
+        )
+    ],
+    verbose=0,
 )
+cv_scores["TensorFlow Neural Net"] = float(np.mean(nn_fold_scores))
+fitted_models["TensorFlow Neural Net"] = (
+    nn_age_imputer,
+    nn_preprocessor,
+    nn_model,
+)
+best_parameters["TensorFlow Neural Net"] = {
+    "architecture": "Dense(64)-Dropout-Dense(32)-Dropout-Sigmoid",
+    "early_stopping": True,
+}
+print(f"TensorFlow Neural Net: CV ROC-AUC={np.mean(nn_fold_scores):.4f}")
 
-cv_accuracies["TensorFlow Neural Net"] = max(nn_history.history["accuracy"])
-best_params["TensorFlow Neural Net"] = "Dense(64) -> Dropout(0.2) -> Dense(32) -> Dropout(0.2) -> Sigmoid"
-holdout_metrics["TensorFlow Neural Net"] = nn_clf
+def probability_for(name, model, frame):
+    if name.startswith("YDF"):
+        fitted_age_imputer, fitted_ydf = model
+        imputed_frame = fitted_age_imputer.transform(frame)
+        return fitted_ydf.predict(prepare_ydf_frame(imputed_frame))
+    if name == "TensorFlow Neural Net":
+        fitted_age_imputer, fitted_preprocessor, fitted_network = model
+        imputed_frame = fitted_age_imputer.transform(frame)
+        matrix = fitted_preprocessor.transform(imputed_frame)
+        return fitted_network.predict(matrix, verbose=0).ravel()
+    return model.predict_proba(frame)[:, 1]
 
-print("✓ All models trained and cross-validated successfully!")
-
-
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 comparison_rows = []
-
-for name, model in holdout_metrics.items():
-    if "YDF" in name:
-        # YDF handles validation prediction format separately
-        val_preds_prob = model.predict(X_val)
-        val_preds = (val_preds_prob > 0.5).astype(int)
-        val_auc = roc_auc_score(y_val, val_preds_prob)
-    elif "TensorFlow" in name:
-        X_val_dense = X_val_proc.toarray() if hasattr(X_val_proc, "toarray") else X_val_proc
-        val_preds_prob = model.predict(X_val_dense, verbose=0).flatten()
-        val_preds = (val_preds_prob > 0.5).astype(int)
-        val_auc = roc_auc_score(y_val, val_preds_prob)
-    elif name == "CatBoost":
-        val_preds = model.predict(X_val_proc).flatten()
-        val_preds_prob = model.predict_proba(X_val_proc)[:, 1]
-        val_auc = roc_auc_score(y_val, val_preds_prob)
-    else:
-        val_preds = model.predict(X_val_proc)
-        val_preds_prob = model.predict_proba(X_val_proc)[:, 1]
-        val_auc = roc_auc_score(y_val, val_preds_prob)
-
-    val_acc = accuracy_score(y_val, val_preds)
-    val_prec = precision_score(y_val, val_preds)
-    val_rec = recall_score(y_val, val_preds)
-    val_f1 = f1_score(y_val, val_preds)
-
+holdout_probabilities = {}
+for name, model in fitted_models.items():
+    probability = np.asarray(probability_for(name, model, X_holdout))
+    prediction = (probability >= 0.5).astype(int)
+    holdout_probabilities[name] = probability
     comparison_rows.append({
-        "Model Name": name,
-        "GridSearchCV / CV Accuracy": cv_accuracies[name],
-        "Holdout Validation Accuracy": val_acc,
-        "Precision": val_prec,
-        "Recall": val_rec,
-        "F1 Score": val_f1,
-        "ROC-AUC": val_auc,
-        "Best Parameters": best_params[name]
+        "Model": name,
+        "CV ROC-AUC": cv_scores[name],
+        "Holdout Accuracy": accuracy_score(y_holdout, prediction),
+        "Balanced Accuracy": balanced_accuracy_score(y_holdout, prediction),
+        "Precision": precision_score(y_holdout, prediction, zero_division=0),
+        "Recall": recall_score(y_holdout, prediction, zero_division=0),
+        "F1": f1_score(y_holdout, prediction, zero_division=0),
+        "Holdout ROC-AUC": roc_auc_score(y_holdout, probability),
+        "Log Loss": log_loss(y_holdout, probability),
+        "Parameters": best_parameters[name],
     })
 
-comparison_df = pd.DataFrame(comparison_rows).sort_values("Holdout Validation Accuracy", ascending=False)
+comparison_df = (
+    pd.DataFrame(comparison_rows)
+    .sort_values("CV ROC-AUC", ascending=False)
+    .reset_index(drop=True)
+)
 display(comparison_df.round(4))
 
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+sns.barplot(
+    data=comparison_df,
+    y="Model",
+    x="CV ROC-AUC",
+    color="#2563eb",
+    ax=axes[0],
+)
+axes[0].set_xlim(0.5, 1.0)
+axes[0].set_title("Mean 5-fold training CV ROC-AUC")
+for name, probability in holdout_probabilities.items():
+    RocCurveDisplay.from_predictions(
+        y_holdout,
+        probability,
+        name=name,
+        ax=axes[1],
+    )
+axes[1].plot([0, 1], [0, 1], "k--", alpha=0.5)
+axes[1].set_title("Untouched holdout ROC curves")
+plt.tight_layout()
+plt.show()
 
-best_row = comparison_df.iloc[0]
-best_name = best_row["Model Name"]
-print(f"Selecting Best Performing Classifier: {best_name} (Holdout Acc: {best_row['Holdout Validation Accuracy']:.4f})")
+selected_name = comparison_df.iloc[0]["Model"]
+selected_probability = holdout_probabilities[selected_name]
+selected_prediction = (selected_probability >= 0.5).astype(int)
+ConfusionMatrixDisplay.from_predictions(
+    y_holdout,
+    selected_prediction,
+    display_labels=["Died", "Survived"],
+    cmap="Blues",
+)
+plt.title(f"Holdout confusion matrix: {selected_name}")
+plt.show()
+print("Selected by CV ROC-AUC:", selected_name)
 
-# Run predictions
-best_estimator = holdout_metrics[best_name]
-test_prep_proc = preprocessor.transform(test_prep)
+regression_rows = train_features[["Age", "Pclass", "SibSp", "Parch", "Fare"]].dropna()
+reg_X = regression_rows[["Age", "Pclass", "SibSp", "Parch"]]
+reg_y = np.log1p(regression_rows["Fare"])
+reg_X_train, reg_X_test, reg_y_train, reg_y_test = train_test_split(
+    reg_X,
+    reg_y,
+    test_size=0.20,
+    random_state=RANDOM_STATE,
+)
+fare_regression = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+    ("model", LinearRegression()),
+])
+fare_regression.fit(reg_X_train, reg_y_train)
+reg_prediction = fare_regression.predict(reg_X_test)
+print("Log-fare MAE:", round(mean_absolute_error(reg_y_test, reg_prediction), 4))
+print("Log-fare RMSE:", round(mean_squared_error(reg_y_test, reg_prediction) ** 0.5, 4))
+print("Log-fare R2:", round(r2_score(reg_y_test, reg_prediction), 4))
 
-if "YDF" in best_name:
-    test_proba = best_estimator.predict(test_prep)
-    test_preds = (test_proba > 0.5).astype(int)
-elif "TensorFlow" in best_name:
-    test_prep_dense = test_prep_proc.toarray() if hasattr(test_prep_proc, "toarray") else test_prep_proc
-    test_proba = best_estimator.predict(test_prep_dense, verbose=0).flatten()
-    test_preds = (test_proba > 0.5).astype(int)
-elif best_name == "CatBoost":
-    test_preds = best_estimator.predict(test_prep_proc).flatten().astype(int)
+cluster_features = train_features[["Age", "Fare", "Pclass", "FamilySize"]]
+cluster_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+    ("kmeans", KMeans(n_clusters=3, random_state=RANDOM_STATE, n_init=20)),
+])
+passenger_clusters = cluster_pipeline.fit_predict(cluster_features)
+cluster_summary = (
+    train_features.assign(Cluster=passenger_clusters)
+    .groupby("Cluster")[["Age", "Fare", "Pclass", "FamilySize", "Survived"]]
+    .mean()
+    .round(3)
+)
+display(cluster_summary)
+
+anomaly_features = train_features[["Age", "Fare", "FamilySize", "Pclass"]]
+anomaly_preprocessor = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+])
+anomaly_matrix = anomaly_preprocessor.fit_transform(anomaly_features)
+detector = IsolationForest(
+    n_estimators=300,
+    contamination=0.03,
+    random_state=RANDOM_STATE,
+)
+anomaly_flag = detector.fit_predict(anomaly_matrix)
+anomaly_score = -detector.score_samples(anomaly_matrix)
+anomaly_report = train_df[["PassengerId", "Pclass", "Age", "Fare"]].copy()
+anomaly_report["AnomalyScore"] = anomaly_score
+anomaly_report["Flagged"] = anomaly_flag == -1
+display(anomaly_report.sort_values("AnomalyScore", ascending=False).head(10))
+
+print("Security checklist:")
+print("- prevent target and future-data leakage")
+print("- validate inputs and preserve data lineage")
+print("- evaluate false positives and false negatives")
+print("- monitor drift, abuse, and adversarial manipulation")
+print("- keep a human review path for high-impact alerts")
+
+X_all = train_features[feature_columns]
+y_all = train_features["Survived"].astype(int)
+X_kaggle_test = test_features[feature_columns]
+
+if selected_name.startswith("YDF"):
+    selected_factory = ydf_factories[selected_name]
+    final_age_imputer = GroupedAgeImputer().fit(X_all)
+    final_train = final_age_imputer.transform(X_all)
+    final_test = final_age_imputer.transform(X_kaggle_test)
+    final_model = selected_factory().train(
+        prepare_ydf_frame(final_train, y_all)
+    )
+    test_probability = final_model.predict(prepare_ydf_frame(final_test))
+elif selected_name == "TensorFlow Neural Net":
+    final_age_imputer = GroupedAgeImputer().fit(X_all)
+    final_train = final_age_imputer.transform(X_all)
+    final_test = final_age_imputer.transform(X_kaggle_test)
+    final_preprocessor = clone(preprocessor)
+    final_X = final_preprocessor.fit_transform(final_train)
+    final_test_X = final_preprocessor.transform(final_test)
+    tf.keras.backend.clear_session()
+    tf.keras.utils.set_random_seed(RANDOM_STATE)
+    final_model = build_neural_network(final_X.shape[1])
+    final_model.fit(
+        final_X,
+        y_all,
+        validation_split=0.15,
+        epochs=100,
+        batch_size=32,
+        callbacks=[
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                patience=10,
+                restore_best_weights=True,
+            )
+        ],
+        verbose=0,
+    )
+    test_probability = final_model.predict(final_test_X, verbose=0).ravel()
 else:
-    test_preds = best_estimator.predict(test_prep_proc).astype(int)
-
+    final_model = clone(fitted_models[selected_name])
+    final_model.fit(X_all, y_all)
+    test_probability = final_model.predict_proba(X_kaggle_test)[:, 1]
 
 submission = pd.DataFrame({
     "PassengerId": test_df["PassengerId"],
-    "Survived": test_preds
+    "Survived": (np.asarray(test_probability) >= 0.5).astype(int),
 })
-
-try:
-    os.makedirs("../submissions/", exist_ok=True)
-    sub_path = "../submissions/submission_tfdf_tuned.csv"
-except Exception:
-    os.makedirs("submissions/", exist_ok=True)
-    sub_path = "submissions/submission_tfdf_tuned.csv"
-submission.to_csv(sub_path, index=False)
-
-print(f"✓ Saved submission predictions to: {sub_path}")
-print(submission.head(10))
-
+output_dir = "../submissions" if os.path.isdir("../kaggle") else "submissions"
+os.makedirs(output_dir, exist_ok=True)
+submission_path = os.path.join(output_dir, "submission_model_comparison.csv")
+submission.to_csv(submission_path, index=False)
+comparison_df.to_json(
+    os.path.join(output_dir, "model_comparison_metrics.json"),
+    orient="records",
+    indent=2,
+)
+print("Saved:", submission_path)
+display(submission.head())
