@@ -3,6 +3,7 @@ import { links, validatedResult } from './data/projectContent.js';
 import { kaggleSteps } from './data/kaggleSteps.js';
 import { notebookSteps } from './data/notebookSteps.js';
 import { tfdfSteps } from './data/tfdfSteps.js';
+import { modelProgressNotes, previousModelMetrics, workflowProgress } from './data/modelComparisonHistory.js';
 import AssignmentPage from './components/AssignmentPage.jsx';
 import PillWorkflowTabs from './components/PillWorkflowTabs.jsx';
 
@@ -130,6 +131,7 @@ export default function App() {
   // Model comparisons loaded dynamically
   const [modelComparisons, setModelComparisons] = useState([]);
   const [compError, setCompError] = useState('');
+  const [expandedModel, setExpandedModel] = useState(null);
 
   // Fetch model weights and metrics
   useEffect(() => {
@@ -149,6 +151,16 @@ export default function App() {
       .then((data) => setModelComparisons(data))
       .catch((err) => setCompError(err.message));
   }, []);
+
+  useEffect(() => {
+    if (!expandedModel) return;
+    requestAnimationFrame(() => {
+      document.getElementById('model-progress-panel')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    });
+  }, [expandedModel]);
 
   // Reset active section on tab change
   useEffect(() => {
@@ -517,8 +529,49 @@ export default function App() {
   };
 
   const renderComparisonTable = () => {
+    const selectedModel = modelComparisons.find(
+      (item) => (item.Model || item.model) === expandedModel
+    );
+    const previousMetrics = expandedModel ? previousModelMetrics[expandedModel] : null;
+
+    const currentMetric = (key, fallback = 0) => selectedModel?.[key] ?? fallback;
+    const formatMetric = (value) => Number(value ?? 0).toFixed(4);
+    const formatDelta = (current, previous) => {
+      if (previous === undefined || previous === null) return 'New';
+      const delta = current - previous;
+      return `${delta >= 0 ? '+' : ''}${delta.toFixed(4)}`;
+    };
+
+    const progressMetrics = selectedModel ? [
+      {
+        label: 'Accuracy',
+        before: previousMetrics?.accuracy,
+        after: currentMetric('Holdout Accuracy', selectedModel.Accuracy),
+      },
+      {
+        label: 'Precision',
+        before: previousMetrics?.precision,
+        after: currentMetric('Precision', selectedModel.precision),
+      },
+      {
+        label: 'Recall',
+        before: previousMetrics?.recall,
+        after: currentMetric('Recall', selectedModel.recall),
+      },
+      {
+        label: 'F1',
+        before: previousMetrics?.f1,
+        after: currentMetric('F1', selectedModel.f1),
+      },
+      {
+        label: 'ROC-AUC',
+        before: previousMetrics?.rocAuc,
+        after: currentMetric('Holdout ROC-AUC', selectedModel['ROC-AUC'] ?? selectedModel.roc_auc),
+      },
+    ] : [];
+
     return (
-      <div className="comparison-table-wrap" style={{ marginTop: '30px' }}>
+      <div className="comparison-module" style={{ marginTop: '30px' }}>
         <div className="insight-box" style={{ marginBottom: '14px' }}>
           <strong>Validated Colab run:</strong> Generated on June 24, 2026 from the leakage-safe workflow. Selection uses training CV ROC-AUC; holdout metrics are reported for final comparison.
         </div>
@@ -527,67 +580,116 @@ export default function App() {
             Loading saved reference metrics failed.
           </div>
         ) : null}
-        <table className="comparison-table">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>CV ROC-AUC</th>
-              <th>Holdout Accuracy</th>
-              <th>Balanced Accuracy</th>
-              <th>Precision</th>
-              <th>Recall</th>
-              <th>F1 Score</th>
-              <th>Holdout ROC-AUC</th>
-              <th>Log Loss</th>
-              <th>Parameters</th>
-            </tr>
-          </thead>
-          <tbody>
-            {modelComparisons.length > 0 ? (
-              modelComparisons.map((item, idx) => (
-                <tr key={idx}>
-                  <td><strong>{item.Model || item.model}</strong></td>
-                  <td>{(item["CV ROC-AUC"] ?? item.CV_Accuracy ?? 0).toFixed(4)}</td>
-                  <td>{((item["Holdout Accuracy"] ?? item.Accuracy ?? 0) * 100).toFixed(2)}%</td>
-                  <td>{(item["Balanced Accuracy"] ?? 0).toFixed(4)}</td>
-                  <td>{(item.Precision || item.precision || 0).toFixed(4)}</td>
-                  <td>{(item.Recall || item.recall || 0).toFixed(4)}</td>
-                  <td>{(item.F1 || item.f1 || 0).toFixed(4)}</td>
-                  <td>{(item["Holdout ROC-AUC"] ?? item["ROC-AUC"] ?? item.roc_auc ?? 0).toFixed(4)}</td>
-                  <td>{(item["Log Loss"] ?? 0).toFixed(4)}</td>
-                  <td><code>{JSON.stringify(item.Parameters ?? item.Best_Params ?? {})}</code></td>
-                </tr>
-              ))
-            ) : (
-              <>
+        <p className="comparison-scroll-hint">
+          <i className="fa-solid fa-arrows-left-right" aria-hidden="true"></i>
+          Scroll horizontally for all metrics. Select a model to view its progress.
+        </p>
+        <div className="comparison-table-wrap" tabIndex="0" aria-label="Scrollable model comparison table">
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>CV ROC-AUC</th>
+                <th>Holdout Accuracy</th>
+                <th>Balanced Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1 Score</th>
+                <th>Holdout ROC-AUC</th>
+                <th>Log Loss</th>
+              </tr>
+            </thead>
+            <tbody>
+              {modelComparisons.length > 0 ? (
+                modelComparisons.map((item) => {
+                  const modelName = item.Model || item.model;
+                  const isExpanded = expandedModel === modelName;
+                  return (
+                    <tr key={modelName} className={isExpanded ? 'is-selected' : ''}>
+                      <td>
+                        <button
+                          type="button"
+                          className="model-progress-button"
+                          aria-expanded={isExpanded}
+                          aria-controls="model-progress-panel"
+                          onClick={() => setExpandedModel(isExpanded ? null : modelName)}
+                        >
+                          <span>{modelName}</span>
+                          <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                        </button>
+                      </td>
+                      <td>{formatMetric(item['CV ROC-AUC'] ?? item.CV_Accuracy)}</td>
+                      <td>{((item['Holdout Accuracy'] ?? item.Accuracy ?? 0) * 100).toFixed(2)}%</td>
+                      <td>{formatMetric(item['Balanced Accuracy'])}</td>
+                      <td>{formatMetric(item.Precision ?? item.precision)}</td>
+                      <td>{formatMetric(item.Recall ?? item.recall)}</td>
+                      <td>{formatMetric(item.F1 ?? item.f1)}</td>
+                      <td>{formatMetric(item['Holdout ROC-AUC'] ?? item['ROC-AUC'] ?? item.roc_auc)}</td>
+                      <td>{formatMetric(item['Log Loss'])}</td>
+                    </tr>
+                  );
+                })
+              ) : (
                 <tr>
-                  <td><strong>Logistic Regression</strong></td>
-                  <td>0.8739</td>
-                  <td>83.24%</td>
-                  <td>0.8177</td>
-                  <td>0.8000</td>
-                  <td>0.7536</td>
-                  <td>0.7761</td>
-                  <td>0.8697</td>
-                  <td>0.4245</td>
-                  <td><code>{'{"model__C":1.0}'}</code></td>
+                  <td colSpan="9">Loading validated comparison metrics...</td>
                 </tr>
-                <tr>
-                  <td><strong>Random Forest</strong></td>
-                  <td>0.8872</td>
-                  <td>78.77%</td>
-                  <td>0.7625</td>
-                  <td>0.7627</td>
-                  <td>0.6522</td>
-                  <td>0.7031</td>
-                  <td>0.8431</td>
-                  <td>0.4504</td>
-                  <td><code>{'{"max_depth":null,"min_samples_leaf":3}'}</code></td>
-                </tr>
-              </>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {selectedModel && (
+          <section id="model-progress-panel" className="model-progress-panel" aria-live="polite">
+            <div className="model-progress-header">
+              <div>
+                <span className="model-progress-eyebrow">Model Progress</span>
+                <h3>{expandedModel}</h3>
+              </div>
+              <button
+                type="button"
+                className="model-progress-close"
+                onClick={() => setExpandedModel(null)}
+                aria-label={`Close ${expandedModel} progress`}
+              >
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <p className="model-progress-summary">{modelProgressNotes[expandedModel]}</p>
+
+            <div className="model-progress-metrics">
+              {progressMetrics.map((metric) => {
+                const delta = metric.before == null ? null : metric.after - metric.before;
+                return (
+                  <div className="progress-metric" key={metric.label}>
+                    <span>{metric.label}</span>
+                    <div className="progress-values">
+                      <div><small>Before</small><strong>{metric.before == null ? 'Not available' : formatMetric(metric.before)}</strong></div>
+                      <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                      <div><small>Current</small><strong>{formatMetric(metric.after)}</strong></div>
+                    </div>
+                    <span className={`metric-delta ${delta == null ? 'new' : delta >= 0 ? 'positive' : 'negative'}`}>
+                      {formatDelta(metric.after, metric.before)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="model-progress-details">
+              <div>
+                <h4>What changed in the workflow</h4>
+                <ul>
+                  {workflowProgress.map((change) => <li key={change}>{change}</li>)}
+                </ul>
+              </div>
+              <div>
+                <h4>Current configuration</h4>
+                <pre><code>{JSON.stringify(selectedModel.Parameters ?? selectedModel.Best_Params ?? {}, null, 2)}</code></pre>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     );
   };

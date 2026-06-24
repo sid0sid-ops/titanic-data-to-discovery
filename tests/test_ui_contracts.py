@@ -24,3 +24,18 @@ def test_assignment_page_exposes_tab_panels_and_labels():
 def test_github_actions_installs_with_npm_ci():
     workflow_source = (ROOT / ".github" / "workflows" / "deploy.yml").read_text()
     assert "npm ci" in workflow_source
+
+
+def test_model_comparison_table_is_scrollable_and_expandable():
+    app_source = (ROOT / "src" / "App.jsx").read_text()
+    styles_source = (ROOT / "src" / "styles.css").read_text()
+    history_source = (ROOT / "src" / "data" / "modelComparisonHistory.js").read_text()
+
+    assert 'aria-label="Scrollable model comparison table"' in app_source
+    assert 'className="model-progress-button"' in app_source
+    assert "aria-expanded={isExpanded}" in app_source
+    assert 'id="model-progress-panel"' in app_source
+    assert "previousModelMetrics" in app_source
+    assert "overflow-x: auto" in styles_source
+    assert "position: sticky" in styles_source
+    assert "grouped Age" in history_source
