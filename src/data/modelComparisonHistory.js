@@ -85,3 +85,54 @@ export const workflowProgress = [
   'Validation: model selection changed from mixed validation estimates to one shared five-fold stratified CV ROC-AUC policy.',
   'Evaluation: added balanced accuracy and log loss; the untouched holdout is reported but not used to select the winner.',
 ];
+
+export const modelDropExplanations = {
+  'YDF Random Forest': [
+    'The old workflow included a ticket-group survival feature derived from passenger labels. Removing that leakage makes the new score more realistic but can reduce apparent accuracy.',
+    'YDF is now evaluated with the same five stratified folds as the other models instead of relying on its out-of-bag estimate for model comparison.',
+    'The current fixed 0.5 decision threshold favors honest probability comparison and was not adjusted to maximize holdout accuracy.',
+  ],
+  'YDF Gradient Boosted Trees': [
+    'The leaked ticket-group survival signal was removed, so the model can no longer indirectly learn outcomes from related labeled passengers.',
+    'The new run uses a fixed reproducible YDF configuration and shared cross-validation protocol instead of the previous random-search/self-evaluation combination.',
+    'It is selected and compared by CV ROC-AUC, which rewards ranking quality rather than the largest number of correct 0.5-threshold predictions.',
+  ],
+  'Random Forest': [
+    'The previous feature set contained target-derived group survival information. Removing it reduces optimistic performance, especially for flexible tree models that can exploit strong leaked signals.',
+    'Hyperparameters are now selected by cross-validated ROC-AUC, not holdout accuracy. The selected forest can rank probabilities well while producing fewer correct labels at a fixed 0.5 threshold.',
+    'All imputers and encoders are refitted inside each fold, preventing validation information from improving training transformations.',
+  ],
+  XGBoost: [
+    'The comparison is now leakage-safe, so XGBoost no longer receives the target-derived ticket survival feature that boosted the earlier holdout result.',
+    'The best configuration is selected by mean five-fold ROC-AUC. That objective can trade some threshold accuracy or holdout ROC-AUC for more stable ranking across folds.',
+    'A single 179-row holdout has sampling variance; small changes in a few passengers can noticeably move accuracy, recall, and ROC-AUC.',
+  ],
+  CatBoost: [
+    'The new shared preprocessing removes target leakage and converts all models to the same encoded feature matrix, so CatBoost is not using a special native categorical-data advantage.',
+    'Tuning now optimizes training CV ROC-AUC rather than the final holdout score.',
+    'The holdout result is one sample of generalization performance; the improved holdout ROC-AUC alongside flat accuracy shows better ranking without more 0.5-threshold correct labels.',
+  ],
+  'TensorFlow Neural Net': [
+    'The previous value labeled as CV accuracy was actually the maximum training accuracy. The new value is genuine five-fold validation ROC-AUC from fresh networks, so it is intentionally more conservative.',
+    'Early stopping limits overfitting and may reduce training-set performance while improving probability calibration and holdout generalization.',
+    'Neural networks have run-to-run variance on this small tabular dataset even with fixed seeds.',
+  ],
+  'Logistic Regression': [
+    'No overall drop occurred in the main holdout metrics. The model improved after grouped Age imputation, expanded features, and fold-safe scaling.',
+  ],
+  'Decision Tree': [
+    'Any individual metric reduction reflects the tradeoff from tuning depth and minimum leaf size for cross-validated ROC-AUC rather than maximizing one holdout metric.',
+    'Regularizing the tree reduces memorization and can lower training-like performance while producing more stable unseen-data behavior.',
+  ],
+  LightGBM: [
+    'Metric changes differ because learning rate and leaf count are selected by mean CV ROC-AUC, not by the final holdout.',
+    'The leakage-safe feature set can lower some ranking metrics while improving holdout accuracy, balanced accuracy, recall, and F1.',
+  ],
+  KNN: [
+    'KNN is new in the revised comparison, so there is no earlier like-for-like result. “New” is not a drop.',
+  ],
+  'Soft Voting Ensemble': [
+    'The ensemble is new in the revised comparison, so there is no earlier like-for-like result.',
+    'It leads training CV ROC-AUC but not holdout accuracy because model selection does not use the holdout and the voting threshold remains 0.5.',
+  ],
+};

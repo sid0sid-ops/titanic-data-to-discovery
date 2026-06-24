@@ -36,6 +36,9 @@ def test_model_comparison_table_is_scrollable_and_expandable():
     assert "aria-expanded={isExpanded}" in app_source
     assert 'id="model-progress-panel"' in app_source
     assert "previousModelMetrics" in app_source
+    assert "droppedMetrics.length > 0" in app_source
+    assert "Why did some metrics drop?" in app_source
     assert "overflow-x: auto" in styles_source
     assert "position: sticky" in styles_source
     assert "grouped Age" in history_source
+    assert "target-derived ticket survival feature" in history_source

@@ -3,7 +3,12 @@ import { links, validatedResult } from './data/projectContent.js';
 import { kaggleSteps } from './data/kaggleSteps.js';
 import { notebookSteps } from './data/notebookSteps.js';
 import { tfdfSteps } from './data/tfdfSteps.js';
-import { modelProgressNotes, previousModelMetrics, workflowProgress } from './data/modelComparisonHistory.js';
+import {
+  modelDropExplanations,
+  modelProgressNotes,
+  previousModelMetrics,
+  workflowProgress,
+} from './data/modelComparisonHistory.js';
 import AssignmentPage from './components/AssignmentPage.jsx';
 import PillWorkflowTabs from './components/PillWorkflowTabs.jsx';
 
@@ -569,6 +574,9 @@ export default function App() {
         after: currentMetric('Holdout ROC-AUC', selectedModel['ROC-AUC'] ?? selectedModel.roc_auc),
       },
     ] : [];
+    const droppedMetrics = progressMetrics.filter(
+      (metric) => metric.before != null && metric.after < metric.before
+    );
 
     return (
       <div className="comparison-module" style={{ marginTop: '30px' }}>
@@ -656,6 +664,26 @@ export default function App() {
             </div>
 
             <p className="model-progress-summary">{modelProgressNotes[expandedModel]}</p>
+
+            {droppedMetrics.length > 0 && (
+              <div className="model-drop-explanation">
+                <div className="model-drop-title">
+                  <i className="fa-solid fa-circle-info" aria-hidden="true"></i>
+                  <div>
+                    <strong>Why did some metrics drop?</strong>
+                    <span>
+                      Lower {droppedMetrics.map((metric) => metric.label).join(', ')} does not automatically mean the revised workflow is worse.
+                    </span>
+                  </div>
+                </div>
+                <ul>
+                  {(modelDropExplanations[expandedModel] ?? [
+                    'The revised workflow removes optimistic leakage and selects models using training cross-validation rather than the final holdout.',
+                    'Different metrics measure different behavior, and a fixed 0.5 threshold can improve one metric while reducing another.',
+                  ]).map((reason) => <li key={reason}>{reason}</li>)}
+                </ul>
+              </div>
+            )}
 
             <div className="model-progress-metrics">
               {progressMetrics.map((metric) => {
