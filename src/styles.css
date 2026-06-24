@@ -1598,6 +1598,46 @@ a:hover {
   font-size: 12.5px;
 }
 
+.metric-color-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.metric-color-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.metric-color-legend small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.metric-legend-swatch {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.metric-legend-swatch.best {
+  border-color: #86efac;
+  background: #dcfce7;
+}
+
+.metric-legend-swatch.worst {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
+
 .comparison-table-wrap .comparison-table {
   min-width: 1040px;
   margin-top: 0;
@@ -1650,6 +1690,28 @@ a:hover {
 
 .comparison-table-wrap .comparison-table tr.is-selected td:first-child {
   background: #eff6ff;
+}
+
+.comparison-table-wrap .comparison-table td.metric-best {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 800;
+}
+
+.comparison-table-wrap .comparison-table td.metric-worst {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 800;
+}
+
+.comparison-table-wrap .comparison-table tr:hover td.metric-best,
+.comparison-table-wrap .comparison-table tr.is-selected td.metric-best {
+  background: #bbf7d0;
+}
+
+.comparison-table-wrap .comparison-table tr:hover td.metric-worst,
+.comparison-table-wrap .comparison-table tr.is-selected td.metric-worst {
+  background: #fecaca;
 }
 
 .model-progress-button {

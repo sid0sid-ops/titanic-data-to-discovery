@@ -534,6 +534,41 @@ export default function App() {
   };
 
   const renderComparisonTable = () => {
+    const metricDefinitions = [
+      { key: 'CV ROC-AUC', higherIsBetter: true },
+      { key: 'Holdout Accuracy', higherIsBetter: true },
+      { key: 'Balanced Accuracy', higherIsBetter: true },
+      { key: 'Precision', higherIsBetter: true },
+      { key: 'Recall', higherIsBetter: true },
+      { key: 'F1', higherIsBetter: true },
+      { key: 'Holdout ROC-AUC', higherIsBetter: true },
+      { key: 'Log Loss', higherIsBetter: false },
+    ];
+    const metricExtremes = Object.fromEntries(
+      metricDefinitions.map(({ key, higherIsBetter }) => {
+        const values = modelComparisons
+          .map((item) => Number(item[key]))
+          .filter(Number.isFinite);
+        const minimum = values.length ? Math.min(...values) : null;
+        const maximum = values.length ? Math.max(...values) : null;
+        return [
+          key,
+          {
+            best: higherIsBetter ? maximum : minimum,
+            worst: higherIsBetter ? minimum : maximum,
+          },
+        ];
+      })
+    );
+    const metricClassName = (key, value) => {
+      const numericValue = Number(value);
+      const extremes = metricExtremes[key];
+      if (!extremes || !Number.isFinite(numericValue)) return '';
+      if (numericValue === extremes.best) return 'metric-best';
+      if (numericValue === extremes.worst) return 'metric-worst';
+      return '';
+    };
+
     const selectedModel = modelComparisons.find(
       (item) => (item.Model || item.model) === expandedModel
     );
@@ -592,6 +627,11 @@ export default function App() {
           <i className="fa-solid fa-arrows-left-right" aria-hidden="true"></i>
           Scroll horizontally for all metrics. Select a model to view its progress.
         </p>
+        <div className="metric-color-legend" aria-label="Metric color legend">
+          <span><i className="metric-legend-swatch best" aria-hidden="true"></i> Best value</span>
+          <span><i className="metric-legend-swatch worst" aria-hidden="true"></i> Lowest-performing value</span>
+          <small>For Log Loss, lower is better.</small>
+        </div>
         <div className="comparison-table-wrap" tabIndex="0" aria-label="Scrollable model comparison table">
           <table className="comparison-table">
             <thead>
@@ -626,14 +666,30 @@ export default function App() {
                           <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
                         </button>
                       </td>
-                      <td>{formatMetric(item['CV ROC-AUC'] ?? item.CV_Accuracy)}</td>
-                      <td>{((item['Holdout Accuracy'] ?? item.Accuracy ?? 0) * 100).toFixed(2)}%</td>
-                      <td>{formatMetric(item['Balanced Accuracy'])}</td>
-                      <td>{formatMetric(item.Precision ?? item.precision)}</td>
-                      <td>{formatMetric(item.Recall ?? item.recall)}</td>
-                      <td>{formatMetric(item.F1 ?? item.f1)}</td>
-                      <td>{formatMetric(item['Holdout ROC-AUC'] ?? item['ROC-AUC'] ?? item.roc_auc)}</td>
-                      <td>{formatMetric(item['Log Loss'])}</td>
+                      <td className={metricClassName('CV ROC-AUC', item['CV ROC-AUC'])}>
+                        {formatMetric(item['CV ROC-AUC'] ?? item.CV_Accuracy)}
+                      </td>
+                      <td className={metricClassName('Holdout Accuracy', item['Holdout Accuracy'])}>
+                        {((item['Holdout Accuracy'] ?? item.Accuracy ?? 0) * 100).toFixed(2)}%
+                      </td>
+                      <td className={metricClassName('Balanced Accuracy', item['Balanced Accuracy'])}>
+                        {formatMetric(item['Balanced Accuracy'])}
+                      </td>
+                      <td className={metricClassName('Precision', item.Precision)}>
+                        {formatMetric(item.Precision ?? item.precision)}
+                      </td>
+                      <td className={metricClassName('Recall', item.Recall)}>
+                        {formatMetric(item.Recall ?? item.recall)}
+                      </td>
+                      <td className={metricClassName('F1', item.F1)}>
+                        {formatMetric(item.F1 ?? item.f1)}
+                      </td>
+                      <td className={metricClassName('Holdout ROC-AUC', item['Holdout ROC-AUC'])}>
+                        {formatMetric(item['Holdout ROC-AUC'] ?? item['ROC-AUC'] ?? item.roc_auc)}
+                      </td>
+                      <td className={metricClassName('Log Loss', item['Log Loss'])}>
+                        {formatMetric(item['Log Loss'])}
+                      </td>
                     </tr>
                   );
                 })

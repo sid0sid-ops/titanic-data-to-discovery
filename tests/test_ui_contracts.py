@@ -38,7 +38,13 @@ def test_model_comparison_table_is_scrollable_and_expandable():
     assert "previousModelMetrics" in app_source
     assert "droppedMetrics.length > 0" in app_source
     assert "Why did some metrics drop?" in app_source
+    assert "metricExtremes" in app_source
+    assert "higherIsBetter: false" in app_source
+    assert "metric-best" in app_source
+    assert "metric-worst" in app_source
     assert "overflow-x: auto" in styles_source
     assert "position: sticky" in styles_source
+    assert "td.metric-best" in styles_source
+    assert "td.metric-worst" in styles_source
     assert "grouped Age" in history_source
     assert "target-derived ticket survival feature" in history_source
