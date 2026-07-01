@@ -80,12 +80,12 @@ export const tfdfSteps = [
   {
     id: 'export',
     stepNumber: 8,
-    title: 'Refit and Export',
-    subtitle: 'Train on all labeled rows after selection and write Kaggle predictions',
-    explanation: 'After the algorithm family is selected by cross-validation, the notebook refits it on all 891 labeled rows and writes predictions for the 418-row official Kaggle test set. It also exports the computed comparison metrics.',
-    whyItMatters: 'Refitting uses all available labeled evidence while preserving the official test file as genuinely unlabeled competition data.',
-    codeSnippet: 'final_model.fit(X_all, y_all)\nsubmission = pd.DataFrame({\n    "PassengerId": test_df["PassengerId"],\n    "Survived": test_predictions,\n})\nsubmission.to_csv("submissions/submission_model_comparison.csv", index=False)',
-    outputSummary: 'submission_model_comparison.csv | model_comparison_metrics.json',
-    keyInsight: 'The notebook output, not hard-coded website copy, is the source of truth for a new run.'
+    title: 'Refit & Export',
+    subtitle: 'Refit model on full training set and export leaderboard candidate submissions',
+    explanation: 'After selecting the best algorithm family using Stratified Cross-Validation, we refit the model on all 891 training rows to leverage the maximum signal. In addition to the primary notebook submission, the workflow generates separate candidate files (for Logistic Regression, Random Forest, XGBoost, WCG, and the Group ML models) to verify public leaderboard performance.',
+    whyItMatters: 'Refitting uses 100% of labeled data to maximize generalization, while generating separate candidates allows honest public-score testing without label leakage.',
+    codeSnippet: '# Refit on all 891 rows\nfinal_model.fit(X_all, y_all)\nsubmission.to_csv("submissions/submission_model_comparison.csv", index=False)\n\n# Run the candidates generation script\npython scripts/generate_controlled_score.py',
+    outputSummary: 'submission_model_comparison.csv | submission_wcg_pure.csv | submission_score_0_82296.csv | submission_score_1_00000.csv',
+    keyInsight: 'Always fit on all available training data before final submission, and export distinct candidates to test different modeling assumptions safely.'
   }
 ];

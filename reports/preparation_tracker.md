@@ -11,10 +11,10 @@
 | 7 | Linear Regression | Pending class notes | Not generated | Pending |
 | 8 | Logistic Regression | Pending class notes | Logistic baseline | Pending |
 | 9 | KNN Algorithm | Pending class notes | Not generated | Pending |
-| 10 | Decision Trees & Random Forest | Pending class notes | Existing comparison notebook | Pending |
-| 11 | Unsupervised Learning | Pending class notes | Not generated | Pending |
-| 12 | Neural Networks | Pending class notes | Existing comparison notebook | Pending |
-| 13 | Model Evaluation | Pending class notes | Metrics + diagnostic plots | Pending |
+| 10 | Decision Trees & Random Forest | Documented | Existing comparison notebook | Done |
+| 11 | Unsupervised Learning | Documented | Supervised vs. unsupervised notebook exercise | Done |
+| 12 | Neural Networks | Documented | Neural Network training configuration | Done |
+| 13 | Model Evaluation | Documented | Metrics + diagnostic plots | Done |
 | 14 | Mini Project | Pending class notes | Assignment workbook + website | Pending |
 | 15 | Cyber Security using AI & ML | Pending class notes | Not generated | Pending |
 

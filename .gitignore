@@ -29,5 +29,14 @@ yarn-error.log*
 # Local/raw data and generated archives
 data/raw/
 data/large/
+kaggle_uploads/
 titanic-assignment-inputs.tar.gz
 reports/colab/*.tar.gz
+
+# Local folder indexes and working notes
+docs/README.md
+docs/project_index.md
+reports/README.md
+scripts/README.md
+src/README.md
+study materials/material_index.md

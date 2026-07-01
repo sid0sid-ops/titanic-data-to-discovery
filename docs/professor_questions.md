@@ -144,3 +144,32 @@ Traceability is essential, what do you think?
 Documentation may have lasting benefits, true or false and why
 
 Kindly answer the above and submit the same to my mail id on or before 20 June 2026.
+
+## Day 10 — Decision Trees & Random Forest
+
+Class task themes:
+* Explain Splitting Criteria: Gini Impurity vs. Information Gain (Entropy).
+* Define Decision Tree vs. Random Forest ("one expert vs. panel of experts").
+* Highlight Tree-Based Data Cleansing: surrogate splits, outlier detection, and feature importance.
+* Answer the Spot the Dirty Data worksheet questions.
+* Discuss the "Build Your Own Forest" reflection question: "If one tree makes a mistake, how does the forest correct it?"
+
+## Day 12 — Neural Networks, Perceptron & Deep Learning
+
+Class task themes:
+* Define Perceptron in your own words.
+* List three key differences between a Perceptron and a Deep Neural Network.
+* Explain what Gradient Descent does in a neural network.
+* Why is backpropagation essential for learning?
+* Identify five features used to predict survival in the Titanic dataset.
+* Describe how Gradient Descent helps the model improve its predictions.
+* Reflect on: "From simple neurons to deep insights — AI is teaching machines to think."
+
+## Day 13 — Model Evaluation
+
+Class task themes:
+* Define Accuracy, Precision, Recall, and F1-score for Titanic survival classification.
+* Solve the rescue-prediction trade-off: "If you were designing a rescue-prediction system, would you prefer high precision or high recall?"
+* Interpret the confusion matrix (TP=80, FN=40, FP=20, TN=160) and calculate accuracy, precision, recall, and F1-score.
+* Explain why accuracy alone is insufficient for evaluating models under class imbalance.
+

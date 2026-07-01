@@ -35,6 +35,15 @@ def test_model_comparison_table_is_scrollable_and_expandable():
     assert 'className="model-progress-button"' in app_source
     assert "aria-expanded={isExpanded}" in app_source
     assert 'id="model-progress-panel"' in app_source
+    assert 'role="dialog"' in app_source
+    assert 'aria-modal="true"' in app_source
+    assert "isModelProgressClosing" in app_source
+    assert "closeModelProgress" in app_source
+    assert "document.body.style.overflow = 'hidden'" in app_source
+    assert "event.key === 'Escape'" in app_source
+    assert "CV ROC-AUC" in app_source
+    assert "Balanced Accuracy" in app_source
+    assert "Log Loss" in app_source
     assert "previousModelMetrics" in app_source
     assert "droppedMetrics.length > 0" in app_source
     assert "Why did some metrics drop?" in app_source
@@ -46,5 +55,9 @@ def test_model_comparison_table_is_scrollable_and_expandable():
     assert "position: sticky" in styles_source
     assert "td.metric-best" in styles_source
     assert "td.metric-worst" in styles_source
+    assert ".model-progress-overlay.is-opening" in styles_source
+    assert ".model-progress-overlay.is-closing" in styles_source
+    assert "@keyframes modelProgressPanelIn" in styles_source
+    assert "@keyframes modelProgressPanelOut" in styles_source
     assert "grouped Age" in history_source
     assert "target-derived ticket survival feature" in history_source

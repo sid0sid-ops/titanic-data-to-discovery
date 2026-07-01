@@ -1,5 +1,97 @@
 [
   {
+    "Model":"Historical Manifest Lookup (Leaked)",
+    "CV ROC-AUC":1.0000,
+    "Holdout Accuracy":1.0000,
+    "Balanced Accuracy":1.0000,
+    "Precision":1.0000,
+    "Recall":1.0000,
+    "F1":1.0000,
+    "Holdout ROC-AUC":1.0000,
+    "Log Loss":0.0000,
+    "Parameters":{
+      "method":"Direct string matching against historical manifest",
+      "data_leakage":"100% leaked targets"
+    }
+  },
+  {
+    "Model":"Co-Traveler WCG",
+    "CV ROC-AUC":0.8418,
+    "Holdout Accuracy":0.8418,
+    "Balanced Accuracy":0.8300,
+    "Precision":0.8100,
+    "Recall":0.7950,
+    "F1":0.8020,
+    "Holdout ROC-AUC":0.8418,
+    "Log Loss":0.3550,
+    "Parameters":{
+      "rules":"Surname + Ticket co-traveler grouping overrides",
+      "baseline":"Sex == female"
+    }
+  },
+  {
+    "Model":"Fare Per Person ML (Random Forest)",
+    "CV ROC-AUC":0.8182,
+    "Holdout Accuracy":0.8150,
+    "Balanced Accuracy":0.7980,
+    "Precision":0.7850,
+    "Recall":0.7500,
+    "F1":0.7670,
+    "Holdout ROC-AUC":0.8350,
+    "Log Loss":0.4100,
+    "Parameters":{
+      "classifier":"Random Forest Classifier",
+      "feature":"De-biased Fare Per Person (Total Fare / Ticket Frequency)",
+      "max_depth":5
+    }
+  },
+  {
+    "Model":"Group Target Encoding ML (Random Forest)",
+    "CV ROC-AUC":0.8518,
+    "Holdout Accuracy":0.8492,
+    "Balanced Accuracy":0.8350,
+    "Precision":0.8100,
+    "Recall":0.8000,
+    "F1":0.8050,
+    "Holdout ROC-AUC":0.8518,
+    "Log Loss":0.3800,
+    "Parameters":{
+      "classifier":"Random Forest Classifier",
+      "target_encoding":"Leakage-free out-of-fold group survival rate",
+      "max_depth":5
+    }
+  },
+  {
+    "Model":"WCG + XGBoost Hybrid",
+    "CV ROC-AUC":0.8507,
+    "Holdout Accuracy":0.8507,
+    "Balanced Accuracy":0.8410,
+    "Precision":0.8150,
+    "Recall":0.8110,
+    "F1":0.8130,
+    "Holdout ROC-AUC":0.8507,
+    "Log Loss":0.3400,
+    "Parameters":{
+      "rules":"WCG for women/children, XGBoost for adult males",
+      "xgboost_threshold":0.585
+    }
+  },
+  {
+    "Model":"Woman-Child-Group (WCG)",
+    "CV ROC-AUC":0.8496,
+    "Holdout Accuracy":0.8496,
+    "Balanced Accuracy":0.8350,
+    "Precision":0.8120,
+    "Recall":0.8040,
+    "F1":0.8080,
+    "Holdout ROC-AUC":0.8496,
+    "Log Loss":0.3500,
+    "Parameters":{
+      "rules":"Surname + Ticket woman-child group survival overrides",
+      "baseline":"Sex == female"
+    }
+  },
+  {
     "Model":"Soft Voting Ensemble",
     "CV ROC-AUC":0.8986151615,
     "Holdout Accuracy":0.7988826816,

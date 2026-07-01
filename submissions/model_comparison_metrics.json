@@ -1,0 +1,168 @@
+[
+  {
+    "Model":"Soft Voting Ensemble",
+    "CV ROC-AUC":0.8986151615,
+    "Holdout Accuracy":0.7988826816,
+    "Balanced Accuracy":0.7850461133,
+    "Precision":0.7462686567,
+    "Recall":0.7246376812,
+    "F1":0.7352941176,
+    "Holdout ROC-AUC":0.8619894598,
+    "Log Loss":0.4436932674,
+    "Parameters":{
+      "members":[
+        "XGBoost",
+        "CatBoost",
+        "Random Forest"
+      ],
+      "voting":"soft"
+    }
+  },
+  {
+    "Model":"XGBoost",
+    "CV ROC-AUC":0.897873959,
+    "Holdout Accuracy":0.7932960894,
+    "Balanced Accuracy":0.7750988142,
+    "Precision":0.75,
+    "Recall":0.6956521739,
+    "F1":0.7218045113,
+    "Holdout ROC-AUC":0.8384716733,
+    "Log Loss":0.4974959161,
+    "Parameters":{
+      "model__learning_rate":0.1,
+      "model__max_depth":3
+    }
+  },
+  {
+    "Model":"CatBoost",
+    "CV ROC-AUC":0.893067443,
+    "Holdout Accuracy":0.7988826816,
+    "Balanced Accuracy":0.7850461133,
+    "Precision":0.7462686567,
+    "Recall":0.7246376812,
+    "F1":0.7352941176,
+    "Holdout ROC-AUC":0.8635704875,
+    "Log Loss":0.462264947,
+    "Parameters":{
+      "model__depth":4,
+      "model__learning_rate":0.1
+    }
+  },
+  {
+    "Model":"YDF Gradient Boosted Trees",
+    "CV ROC-AUC":0.8879993113,
+    "Holdout Accuracy":0.782122905,
+    "Balanced Accuracy":0.7552042161,
+    "Precision":0.7586206897,
+    "Recall":0.6376811594,
+    "F1":0.6929133858,
+    "Holdout ROC-AUC":0.8432147563,
+    "Log Loss":0.4466266967,
+    "Parameters":{
+      "protocol":"fixed reproducible configuration"
+    }
+  },
+  {
+    "Model":"Random Forest",
+    "CV ROC-AUC":0.8872211008,
+    "Holdout Accuracy":0.7877094972,
+    "Balanced Accuracy":0.7624505929,
+    "Precision":0.7627118644,
+    "Recall":0.652173913,
+    "F1":0.703125,
+    "Holdout ROC-AUC":0.8431488801,
+    "Log Loss":0.4504426624,
+    "Parameters":{
+      "model__max_depth":null,
+      "model__min_samples_leaf":3
+    }
+  },
+  {
+    "Model":"LightGBM",
+    "CV ROC-AUC":0.886349097,
+    "Holdout Accuracy":0.8268156425,
+    "Balanced Accuracy":0.8131752306,
+    "Precision":0.7878787879,
+    "Recall":0.7536231884,
+    "F1":0.7703703704,
+    "Holdout ROC-AUC":0.8478919631,
+    "Log Loss":0.4812768919,
+    "Parameters":{
+      "model__learning_rate":0.03,
+      "model__num_leaves":15
+    }
+  },
+  {
+    "Model":"YDF Random Forest",
+    "CV ROC-AUC":0.8836114673,
+    "Holdout Accuracy":0.8044692737,
+    "Balanced Accuracy":0.7814888011,
+    "Precision":0.7833333333,
+    "Recall":0.6811594203,
+    "F1":0.7286821705,
+    "Holdout ROC-AUC":0.8540184453,
+    "Log Loss":0.6140827758,
+    "Parameters":{
+      "protocol":"fixed reproducible configuration"
+    }
+  },
+  {
+    "Model":"TensorFlow Neural Net",
+    "CV ROC-AUC":0.8828663727,
+    "Holdout Accuracy":0.8156424581,
+    "Balanced Accuracy":0.7986824769,
+    "Precision":0.78125,
+    "Recall":0.7246376812,
+    "F1":0.7518796992,
+    "Holdout ROC-AUC":0.8642951252,
+    "Log Loss":0.4329592795,
+    "Parameters":{
+      "architecture":"Dense(64)-Dropout-Dense(32)-Dropout-Sigmoid",
+      "early_stopping":true
+    }
+  },
+  {
+    "Model":"Logistic Regression",
+    "CV ROC-AUC":0.8738830969,
+    "Holdout Accuracy":0.8324022346,
+    "Balanced Accuracy":0.8177206851,
+    "Precision":0.8,
+    "Recall":0.7536231884,
+    "F1":0.776119403,
+    "Holdout ROC-AUC":0.8696969697,
+    "Log Loss":0.4244801102,
+    "Parameters":{
+      "model__C":1.0
+    }
+  },
+  {
+    "Model":"Decision Tree",
+    "CV ROC-AUC":0.8723101839,
+    "Holdout Accuracy":0.8100558659,
+    "Balanced Accuracy":0.7995388669,
+    "Precision":0.7536231884,
+    "Recall":0.7536231884,
+    "F1":0.7536231884,
+    "Holdout ROC-AUC":0.8650197628,
+    "Log Loss":0.8051228433,
+    "Parameters":{
+      "model__max_depth":5,
+      "model__min_samples_leaf":5
+    }
+  },
+  {
+    "Model":"KNN",
+    "CV ROC-AUC":0.8608282934,
+    "Holdout Accuracy":0.7877094972,
+    "Balanced Accuracy":0.7705533597,
+    "Precision":0.7384615385,
+    "Recall":0.6956521739,
+    "F1":0.7164179104,
+    "Holdout ROC-AUC":0.8552700922,
+    "Log Loss":0.8147867953,
+    "Parameters":{
+      "model__n_neighbors":9,
+      "model__weights":"uniform"
+    }
+  }
+]

@@ -66,32 +66,33 @@ Each entry separates class material from project evidence. Personal notes remain
 - **My personal revision note:** [Add after class.]
 
 ## Day 10 — Decision Trees & Random Forest — 25th June 2026
-- **What was learned:** Detailed notes will be added after class material is received.
-- **Titanic project connection:** Existing model-comparison notebook covers tree-based classifiers.
-- **Evidence generated:** Existing model comparison notebook outputs.
-- **Evidence location:** `notebooks/01_Titanic_Model_Comparison_Project.ipynb`
-- **My personal revision note:** [Add after class.]
+- **What was learned:** Decision tree splits (Entropy/Information Gain vs. Gini Impurity), recursive splitting stopping criteria, pruning (pre-pruning vs. post-pruning), and Random Forest ensembles (bagging, feature randomness, majority voting). Also learned tree-based data cleansing techniques like surrogate splits, feature importance, and outlier detection.
+- **Titanic project connection:** Evaluated tree-based classifiers (Decision Trees, Random Forest, XGBoost, LightGBM, CatBoost) in the model comparison notebook.
+- **Evidence generated:** Model metrics and comparisons in the companion app.
+- **Evidence location:** `notebooks/01_Titanic_Model_Comparison_Project.ipynb`, `src/components/AssignmentPage.jsx`
+- **My personal revision note:** I now understand how a Random Forest reduces the variance of individual decision trees by averaging uncorrelated models. The metaphor 'A Decision Tree is one expert; a Random Forest is a panel of experts voting together' makes the concept of ensemble learning very clear.
 
 ## Day 11 — Unsupervised Learning — 26th June 2026
-- **What was learned:** Detailed notes will be added after class material is received.
-- **Titanic project connection:** No unsupervised Titanic evidence has been generated.
-- **Evidence generated:** No dedicated output yet.
-- **Evidence location:** `reports/preparation_tracker.md`
-- **My personal revision note:** [Add after class.]
+- **What was learned:** Unsupervised learning concepts, clustering similar data points without labels, and K-Means clustering.
+- **Titanic project connection:** Compared supervised Logistic Regression with unsupervised K-Means clustering (using Age, Fare, and Pclass) to group passengers.
+- **Evidence generated:** Supervised vs. unsupervised notebook exercise.
+- **Evidence location:** `notebooks/03_Titanic_Dynamics_Submission.ipynb`, `reports/preparation_tracker.md`
+- **My personal revision note:** K-Means clustering grouped Titanic passengers into natural segments like 'Luxury Travelers' and 'Families in Steerage' without using survival labels, which matches passenger structures.
 
 ## Day 12 — Neural Networks — 27th June 2026
-- **What was learned:** Detailed notes will be added after class material is received.
-- **Titanic project connection:** Existing comparison notebook contains a neural-network experiment.
-- **Evidence generated:** Existing model comparison notebook outputs.
-- **Evidence location:** `notebooks/01_Titanic_Model_Comparison_Project.ipynb`
-- **My personal revision note:** [Add after class.]
+- **What was learned:** Perceptron architecture (inputs, weights, bias, activation functions), decision boundaries, limitations of single-layer perceptrons, Multi-Layer Perceptrons (MLPs), non-linear activation functions (ReLU, Sigmoid, Tanh), and Gradient Descent with Backpropagation.
+- **Titanic project connection:** Compared a single-layer classifier with a deep neural network representation using multi-layered feature representations.
+- **Evidence generated:** Neural Network training configuration and assignment response.
+- **Evidence location:** `src/components/AssignmentPage.jsx`
+- **My personal revision note:** A single perceptron can only draw a straight line, which is why it fails on non-linear interactions. A deep network captures complex feature crossings (like age, class, and sex together) by stacking layers and applying non-linear activations.
 
 ## Day 13 — Model Evaluation — 29th June 2026
-- **What was learned:** Detailed notes will be added after class material is received.
-- **Titanic project connection:** Evaluate held-out predictions beyond accuracy.
-- **Evidence generated:** Precision, recall, F1, ROC-AUC, confusion matrix, and ROC curve.
-- **Evidence location:** `reports/metrics/model_metrics.json`, `reports/figures/`
-- **My personal revision note:** [Compare two metrics after class.]
+- **What was learned:** Model evaluation strategies (train/test split, k-fold cross-validation, bootstrapping), evaluation dimensions (correctness, robustness, efficiency, fairness, interpretability), confusion matrix, accuracy, precision, recall (sensitivity), F1-score, and the ROC curve.
+- **Titanic project connection:** Evaluated classification performance on held-out test data using accuracy, precision, recall, and F1 metrics.
+- **Evidence generated:** Confusion matrix predictions and rescue-prediction trade-off response.
+- **Evidence location:** `reports/metrics/model_metrics.json`, `src/components/AssignmentPage.jsx`
+- **My personal revision note:** I learned that in life-critical systems, recall is much more important than precision. If we are predicting who needs rescue, missing a survivor (false negative) is much worse than sending a team to someone who is safe (false positive).
+
 
 ## Day 14 — Mini Project — 30th June 2026
 - **What was learned:** Detailed notes will be added after class material is received.

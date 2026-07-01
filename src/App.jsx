@@ -26,7 +26,7 @@ export default function App() {
   const sectionIds = useMemo(() => {
     if (activeWorkflow === 'kaggle') {
       if (activeKaggleSubTab === 'main') {
-        return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'statistics', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'submission', 'relevance', 'mindset', 'reflection'];
+        return ['intro', 'setup', 'loading', 'cleaning', 'missing', 'eda', 'statistics', 'engineering', 'imputation', 'split', 'pipeline', 'training', 'evaluation', 'diagram', 'odds', 'probability-lab', 'knn-lab', 'submission', 'relevance', 'mindset', 'reflection', 'wcg-group'];
       } else {
         return ['setup', 'exploration', 'features', 'validation', 'training', 'evaluation', 'extensions', 'export'];
       }
@@ -52,10 +52,13 @@ export default function App() {
     { id: 'evaluation', name: '12. Evaluation & ROC', icon: 'fa-square-poll-vertical' },
     { id: 'diagram', name: '13. Pipeline Diagram', icon: 'fa-code-branch' },
     { id: 'odds', name: '14. Log-Odds Coefficients', icon: 'fa-scale-balanced' },
-    { id: 'submission', name: '15. Kaggle Submission', icon: 'fa-circle-check' },
-    { id: 'relevance', name: '16. Economic Relevance', icon: 'fa-handshake' },
-    { id: 'mindset', name: '17. Data Science Mindset', icon: 'fa-brain' },
-    { id: 'reflection', name: '18. Final Reflection', icon: 'fa-lightbulb' },
+    { id: 'probability-lab', name: '15. Probability Lab', icon: 'fa-percent' },
+    { id: 'knn-lab', name: '16. KNN Lab', icon: 'fa-network-wired' },
+    { id: 'submission', name: '17. Kaggle Submission', icon: 'fa-circle-check' },
+    { id: 'relevance', name: '18. Economic Relevance', icon: 'fa-handshake' },
+    { id: 'mindset', name: '19. Data Science Mindset', icon: 'fa-brain' },
+    { id: 'reflection', name: '20. Final Reflection', icon: 'fa-lightbulb' },
+    { id: 'wcg-group', name: '21. WCG Model', icon: 'fa-people-group' },
   ];
 
   const tfdfSidebarItems = [
@@ -137,6 +140,8 @@ export default function App() {
   const [modelComparisons, setModelComparisons] = useState([]);
   const [compError, setCompError] = useState('');
   const [expandedModel, setExpandedModel] = useState(null);
+  const [isModelProgressClosing, setIsModelProgressClosing] = useState(false);
+  const modelProgressCloseTimer = useRef(null);
 
   // Fetch model weights and metrics
   useEffect(() => {
@@ -157,15 +162,43 @@ export default function App() {
       .catch((err) => setCompError(err.message));
   }, []);
 
+  const openModelProgress = (modelName) => {
+    if (modelProgressCloseTimer.current) {
+      window.clearTimeout(modelProgressCloseTimer.current);
+    }
+    setIsModelProgressClosing(false);
+    setExpandedModel(modelName);
+  };
+
+  const closeModelProgress = () => {
+    if (!expandedModel || isModelProgressClosing) return;
+    setIsModelProgressClosing(true);
+    modelProgressCloseTimer.current = window.setTimeout(() => {
+      setExpandedModel(null);
+      setIsModelProgressClosing(false);
+      modelProgressCloseTimer.current = null;
+    }, 240);
+  };
+
   useEffect(() => {
-    if (!expandedModel) return;
-    requestAnimationFrame(() => {
-      document.getElementById('model-progress-panel')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
-    });
-  }, [expandedModel]);
+    if (!expandedModel) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeModelProgress();
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [expandedModel, isModelProgressClosing]);
+
+  useEffect(() => () => {
+    if (modelProgressCloseTimer.current) {
+      window.clearTimeout(modelProgressCloseTimer.current);
+    }
+  }, []);
 
   // Reset active section on tab change
   useEffect(() => {
@@ -368,7 +401,7 @@ export default function App() {
     return (
       <div className="cell-output" style={{ maxHeight: 'none', backgroundColor: '#ffffff', marginTop: '20px' }}>
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '12px' }}>
-          <i className="fa-solid fa-cubes"></i> Scikit-Learn Pipeline Diagram from 00_Titanic_Kaggle_Main_Workflow.ipynb
+          <i className="fa-solid fa-cubes"></i> Scikit-Learn Pipeline Diagram from {activeWorkflow === 'kaggle' ? '00_Titanic_Kaggle_Main_Workflow.ipynb' : '02_Titanic_OpenML_Reference_Workflow.ipynb'}
         </div>
         
         <div className="pipeline-diagram">
@@ -584,9 +617,19 @@ export default function App() {
 
     const progressMetrics = selectedModel ? [
       {
-        label: 'Accuracy',
+        label: 'CV ROC-AUC',
+        before: null,
+        after: currentMetric('CV ROC-AUC'),
+      },
+      {
+        label: 'Holdout Accuracy',
         before: previousMetrics?.accuracy,
         after: currentMetric('Holdout Accuracy', selectedModel.Accuracy),
+      },
+      {
+        label: 'Balanced Accuracy',
+        before: null,
+        after: currentMetric('Balanced Accuracy'),
       },
       {
         label: 'Precision',
@@ -604,14 +647,22 @@ export default function App() {
         after: currentMetric('F1', selectedModel.f1),
       },
       {
-        label: 'ROC-AUC',
+        label: 'Holdout ROC-AUC',
         before: previousMetrics?.rocAuc,
         after: currentMetric('Holdout ROC-AUC', selectedModel['ROC-AUC'] ?? selectedModel.roc_auc),
+      },
+      {
+        label: 'Log Loss',
+        before: null,
+        after: currentMetric('Log Loss'),
       },
     ] : [];
     const droppedMetrics = progressMetrics.filter(
       (metric) => metric.before != null && metric.after < metric.before
     );
+    const currentRank = selectedModel
+      ? modelComparisons.findIndex((item) => item === selectedModel) + 1
+      : null;
 
     return (
       <div className="comparison-module" style={{ marginTop: '30px' }}>
@@ -660,7 +711,7 @@ export default function App() {
                           className="model-progress-button"
                           aria-expanded={isExpanded}
                           aria-controls="model-progress-panel"
-                          onClick={() => setExpandedModel(isExpanded ? null : modelName)}
+                          onClick={() => isExpanded ? closeModelProgress() : openModelProgress(modelName)}
                         >
                           <span>{modelName}</span>
                           <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
@@ -703,76 +754,139 @@ export default function App() {
         </div>
 
         {selectedModel && (
-          <section id="model-progress-panel" className="model-progress-panel" aria-live="polite">
-            <div className="model-progress-header">
-              <div>
-                <span className="model-progress-eyebrow">Model Progress</span>
-                <h3>{expandedModel}</h3>
-              </div>
-              <button
-                type="button"
-                className="model-progress-close"
-                onClick={() => setExpandedModel(null)}
-                aria-label={`Close ${expandedModel} progress`}
-              >
-                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
-              </button>
-            </div>
-
-            <p className="model-progress-summary">{modelProgressNotes[expandedModel]}</p>
-
-            {droppedMetrics.length > 0 && (
-              <div className="model-drop-explanation">
-                <div className="model-drop-title">
-                  <i className="fa-solid fa-circle-info" aria-hidden="true"></i>
-                  <div>
-                    <strong>Why did some metrics drop?</strong>
-                    <span>
-                      Lower {droppedMetrics.map((metric) => metric.label).join(', ')} does not automatically mean the revised workflow is worse.
-                    </span>
+          <div
+            className={`model-progress-overlay ${isModelProgressClosing ? 'is-closing' : 'is-opening'}`}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) closeModelProgress();
+            }}
+          >
+            <section
+              id="model-progress-panel"
+              className="model-progress-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="model-progress-title"
+              aria-describedby="model-progress-summary"
+            >
+              <div className="model-progress-header">
+                <div>
+                  <span className="model-progress-eyebrow">Model Progress</span>
+                  <h3 id="model-progress-title">{expandedModel}</h3>
+                  <div className="model-progress-meta">
+                    <span>Current CV rank #{currentRank} of {modelComparisons.length}</span>
+                    <span>Validated in Google Colab on June 24, 2026</span>
                   </div>
                 </div>
-                <ul>
-                  {(modelDropExplanations[expandedModel] ?? [
-                    'The revised workflow removes optimistic leakage and selects models using training cross-validation rather than the final holdout.',
-                    'Different metrics measure different behavior, and a fixed 0.5 threshold can improve one metric while reducing another.',
-                  ]).map((reason) => <li key={reason}>{reason}</li>)}
-                </ul>
+                <button
+                  type="button"
+                  className="model-progress-close"
+                  onClick={closeModelProgress}
+                  aria-label={`Close ${expandedModel} progress`}
+                  autoFocus
+                >
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
               </div>
-            )}
 
-            <div className="model-progress-metrics">
-              {progressMetrics.map((metric) => {
-                const delta = metric.before == null ? null : metric.after - metric.before;
-                return (
-                  <div className="progress-metric" key={metric.label}>
-                    <span>{metric.label}</span>
-                    <div className="progress-values">
-                      <div><small>Before</small><strong>{metric.before == null ? 'Not available' : formatMetric(metric.before)}</strong></div>
-                      <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                      <div><small>Current</small><strong>{formatMetric(metric.after)}</strong></div>
+              <div className="model-progress-body">
+                <p id="model-progress-summary" className="model-progress-summary">
+                  {modelProgressNotes[expandedModel]}
+                </p>
+
+                {(expandedModel === 'Co-Traveler WCG' || 
+                  expandedModel === 'Fare Per Person ML (Random Forest)' || 
+                  expandedModel === 'Group Target Encoding ML (Random Forest)') && (
+                  <div className="model-drop-explanation" style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534', marginTop: '16px' }}>
+                    <div className="model-drop-title" style={{ color: '#15803d' }}>
+                      <i className="fa-solid fa-graduation-cap" aria-hidden="true" style={{ fontSize: '18px', marginRight: '8px' }}></i>
+                      <div>
+                        <strong style={{ color: '#14532d', fontSize: '14px' }}>Leaderboard & Feature Engineering Insights</strong>
+                        <span style={{ color: '#166534', fontSize: '12px' }}>How feature tricks shift public scores vs. the 1.00000 ceiling:</span>
+                      </div>
                     </div>
-                    <span className={`metric-delta ${delta == null ? 'new' : delta >= 0 ? 'positive' : 'negative'}`}>
-                      {formatDelta(metric.after, metric.before)}
-                    </span>
+                    <ul style={{ color: '#14532d', marginTop: '8px', paddingLeft: '20px', listStyleType: 'disc', fontSize: '12.5px', lineHeight: '1.6' }}>
+                      <li><strong>Baseline ML (0.76 - 0.77 LB):</strong> Lacks group features. It misinterprets ticket groups, leading to poor generalization on the public leaderboard despite high training cross-validation.</li>
+                      <li><strong>Fare Per Person (0.78 - 0.79 LB):</strong> Prevents models from overestimating the wealth class of large 3rd-class families. De-biasing the fare is standard, rigorous real-world data science.</li>
+                      <li><strong>Co-Traveler WCG (0.80382 LB):</strong> Groups passengers by Ticket. Evacuation happened in groups (e.g. nannies and children). Linking them captures correlations that normal models treat as solo noise.</li>
+                      <li><strong>The 1.00000 Score Ceiling:</strong> It is possible to score 100% on Kaggle by downloading the public historical Titanic passenger list and matching test records by name.</li>
+                      <li><strong>Problems with 1.00000:</strong> It represents 100% data leakage. The model behaves as a lookup table, not a predictive system. It has zero real-world utility and violates proper data science validation protocols.</li>
+                    </ul>
                   </div>
-                );
-              })}
-            </div>
+                )}
 
-            <div className="model-progress-details">
-              <div>
-                <h4>What changed in the workflow</h4>
-                <ul>
-                  {workflowProgress.map((change) => <li key={change}>{change}</li>)}
-                </ul>
+                {droppedMetrics.length > 0 && (
+                  <div className="model-drop-explanation">
+                    <div className="model-drop-title">
+                      <i className="fa-solid fa-circle-info" aria-hidden="true"></i>
+                      <div>
+                        <strong>Why did some metrics drop?</strong>
+                        <span>
+                          Lower {droppedMetrics.map((metric) => metric.label).join(', ')} does not automatically mean the revised workflow is worse.
+                        </span>
+                      </div>
+                    </div>
+                    <ul>
+                      {(modelDropExplanations[expandedModel] ?? [
+                        'The revised workflow removes optimistic leakage and selects models using training cross-validation rather than the final holdout.',
+                        'Different metrics measure different behavior, and a fixed 0.5 threshold can improve one metric while reducing another.',
+                      ]).map((reason) => <li key={reason}>{reason}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="model-progress-metrics">
+                  {progressMetrics.map((metric) => {
+                    const delta = metric.before == null ? null : metric.after - metric.before;
+                    return (
+                      <div className="progress-metric" key={metric.label}>
+                        <span>{metric.label}</span>
+                        <div className="progress-values">
+                          <div><small>Previous run</small><strong>{metric.before == null ? 'Not reported' : formatMetric(metric.before)}</strong></div>
+                          <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                          <div><small>Current Colab</small><strong>{formatMetric(metric.after)}</strong></div>
+                        </div>
+                        <span className={`metric-delta ${delta == null ? 'new' : delta >= 0 ? 'positive' : 'negative'}`}>
+                          {formatDelta(metric.after, metric.before)}
+                        </span>
+
+                        {metric.label !== 'Log Loss' && (
+                          <div className="metric-visual-progress">
+                            {metric.before != null && (
+                              <div className="progress-track-wrapper">
+                                <span>Prev</span>
+                                <div className="metric-progress-track">
+                                  <div className="metric-progress-fill before" style={{ width: `${metric.before * 100}%` }}></div>
+                                </div>
+                              </div>
+                            )}
+                            <div className="progress-track-wrapper">
+                              <span>Curr</span>
+                              <div className="metric-progress-track">
+                                <div className={`metric-progress-fill after ${delta == null ? 'new' : delta >= 0 ? 'new' : 'negative'}`} style={{ width: `${metric.after * 100}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="model-progress-details">
+                  <div>
+                    <h4>Methodological Improvements</h4>
+                    <ul>
+                      {workflowProgress.map((change) => <li key={change}>{change}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4>Hyperparameter Specifications</h4>
+                    <pre><code>{JSON.stringify(selectedModel.Parameters ?? selectedModel.Best_Params ?? {}, null, 2)}</code></pre>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h4>Current configuration</h4>
-                <pre><code>{JSON.stringify(selectedModel.Parameters ?? selectedModel.Best_Params ?? {}, null, 2)}</code></pre>
-              </div>
-            </div>
-          </section>
+            </section>
+          </div>
         )}
       </div>
     );
@@ -838,6 +952,48 @@ export default function App() {
       </section>
     );
   };
+
+  if (showAssignmentModal) {
+    return (
+      <div className="full-page-assignment-view" style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <header style={{ 
+          position: 'sticky', 
+          top: 0, 
+          zIndex: 100, 
+          backgroundColor: '#ffffff', 
+          borderBottom: '1px solid var(--border-color)', 
+          padding: '16px 32px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        }}>
+          <h1 style={{ margin: 0, fontSize: '22px', color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <i className="fa-solid fa-graduation-cap" style={{ color: 'var(--color-success)', fontSize: '24px' }}></i> Classroom Assignment Submission
+          </h1>
+          <button 
+            className="btn btn-primary"
+            onClick={closeAssignment}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '8px 16px', 
+              fontSize: '14px', 
+              fontWeight: 600,
+              cursor: 'pointer' 
+            }}
+          >
+            <i className="fa-solid fa-arrow-left"></i> Back to Dashboard
+          </button>
+        </header>
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px' }}>
+          <AssignmentPage />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -988,7 +1144,7 @@ export default function App() {
                     <span className="hero-tag">Jupyter Companion • Kaggle Dataset</span>
                     <h1>From Data to Discovery — Lessons from the Titanic Project</h1>
                     <p className="hero-description">
-                      This webpage serves as an educational companion to the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It connects the Day 6 supervised-learning material with the Titanic workflow: labeled data, classification vs regression, train/test evaluation, and model predictions on the standard Kaggle training dataset.
+                      This webpage explains the meaning of the main Kaggle notebook (<code style={{ fontSize: '15px', color: 'var(--color-accent)' }}>00_Titanic_Kaggle_Main_Workflow.ipynb</code>). It follows the study-material language: ask the right question, clean the data, visualize to understand, use Logistic Regression for sigmoid probability and threshold decisions, then compare KNN as lazy non-parametric learning with scaling, distance, and K selection.
                     </p>
                     <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                       <a href="#assignment" onClick={openAssignment} className="btn btn-assignment">
@@ -1009,8 +1165,8 @@ export default function App() {
                         <span className="hero-stat-lbl">Validation Accuracy</span>
                       </div>
                       <div className="hero-stat-card">
-                        <span className="hero-stat-val">2</span>
-                        <span className="hero-stat-lbl">Supervised Tasks</span>
+                        <span className="hero-stat-val">20</span>
+                        <span className="hero-stat-lbl">Notebook Meaning Steps</span>
                       </div>
                     </div>
                   </section>
@@ -1026,12 +1182,37 @@ export default function App() {
                   {/* Hero Banner Section */}
                   <section id="setup" className="hero">
                     <span className="hero-tag">TITANIC MODEL COMPARISON MODULE</span>
-                    <h1>Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, TensorFlow NN</h1>
-                    <p className="hero-description">
-                      This module uses Python, Pandas, visualization, statistics, leakage-safe preprocessing, supervised learning, and model evaluation to compare linear, neighbor, tree, forest, boosting, YDF, and TensorFlow classifiers on the Titanic Kaggle dataset.
-                      <br /><br />
-                      Five-fold stratified cross-validation on the training partition selects the algorithm by ROC-AUC. One untouched holdout then reports accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, and log loss. Separate notebook exercises cover Linear Regression, KNN, K-Means clustering, neural networks, and anomaly detection for cyber-security concepts without mixing unlike tasks into the survival leaderboard.
-                    </p>
+                    <h1>Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, TensorFlow NN, KNN, Soft Voting, & Woman-Child-Group (WCG) Models</h1>
+                    <div className="hero-description" style={{ fontSize: '15.5px', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                      <p style={{ marginBottom: '12px' }}>
+                        This module uses Python, Pandas, visualization, statistics, leakage-safe preprocessing, supervised learning, and model evaluation to compare linear, neighbor, tree, forest, boosting, YDF, and TensorFlow classifiers on the Titanic Kaggle dataset.
+                      </p>
+                      <div style={{ marginBottom: '16px', padding: '12px', borderLeft: '3px solid var(--color-primary)', background: 'var(--card-bg)' }}>
+                        <strong>This notebook uses Python for data science to compare:</strong>
+                        <ul style={{ margin: '8px 0 0 20px', listStyleType: 'disc', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                          <li>Logistic Regression</li>
+                          <li>K-Nearest Neighbors (educational supervised benchmark)</li>
+                          <li>Decision Tree</li>
+                          <li>Random Forest</li>
+                          <li>Google YDF Random Forest and Gradient Boosted Trees</li>
+                          <li>XGBoost</li>
+                          <li>LightGBM</li>
+                          <li>CatBoost</li>
+                          <li>TensorFlow neural network</li>
+                          <li>Soft Voting Ensemble</li>
+                          <li>Woman-Child-Group (WCG) Models</li>
+                        </ul>
+                      </div>
+                      <p style={{ marginBottom: '12px' }}>
+                        The survival leaderboard uses label-free feature engineering, preprocessing fitted only on training folds, stratified cross-validation, and one untouched holdout set. Model selection uses mean cross-validated ROC-AUC. Holdout accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, and log loss are reported afterward.
+                      </p>
+                      <p style={{ marginBottom: '12px' }}>
+                        Five-fold stratified cross-validation compares Logistic Regression, Decision Tree, Random Forest, YDF, XGBoost, LightGBM, CatBoost, TensorFlow NN, KNN, and Soft Voting. The new Kaggle candidate script also exports separate no-leakage CSVs for Logistic Regression, LightGBM, Random Forest, Soft Voting, and a gender baseline so the public leaderboard can be checked model by model.
+                      </p>
+                      <p style={{ marginBottom: '0' }}>
+                        Separate exercises demonstrate data visualization, statistics for ML, Linear Regression, K-Means clustering, and anomaly detection as a cyber-security concept. Those exercises are not mixed into the survival-classification leaderboard.
+                      </p>
+                    </div>
                     <div className="navbar-actions" style={{ justifyContent: 'flex-start' }}>
                       <a href={activeLinks.colab} target="_blank" rel="noreferrer" className="btn btn-primary">
                         <i className="fa-solid fa-play"></i> Run Live Python Code in Colab
@@ -1048,8 +1229,8 @@ export default function App() {
                         <span className="hero-stat-lbl">Stratified CV Folds</span>
                       </div>
                       <div className="hero-stat-card">
-                        <span className="hero-stat-val">8</span>
-                        <span className="hero-stat-lbl">Evaluation Metrics</span>
+                        <span className="hero-stat-val">5</span>
+                        <span className="hero-stat-lbl">Upload Candidates</span>
                       </div>
                     </div>
                   </section>
@@ -1273,62 +1454,6 @@ export default function App() {
                 Close Comparison
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showAssignmentModal && (
-        <div 
-          className="modal-overlay" 
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100%', 
-            height: '100%', 
-            backgroundColor: 'rgba(15, 23, 42, 0.6)', 
-            backdropFilter: 'blur(8px)', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            zIndex: 9999, 
-            padding: '20px' 
-          }}
-          onClick={closeAssignment}
-        >
-          <div 
-            className="modal-card" 
-            style={{ 
-              backgroundColor: '#ffffff', 
-              borderRadius: '16px', 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', 
-              width: '100%', 
-              maxWidth: '850px', 
-              maxHeight: '90vh', 
-              overflowY: 'auto', 
-              position: 'relative', 
-              display: 'flex', 
-              flexDirection: 'column' 
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fa-solid fa-graduation-cap" style={{ color: 'var(--color-success)' }}></i> Classroom Assignment Submission
-              </h3>
-              <button 
-                onClick={closeAssignment}
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-muted)' }}
-                aria-label="Close modal"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <AssignmentPage />
-
           </div>
         </div>
       )}

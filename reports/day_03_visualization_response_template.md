@@ -10,7 +10,7 @@ I would begin by naming the exact comparison I need to make: [write the comparis
 
 My own final wording:
 
-[Write my final answer here after reviewing the evidence.]
+To compare passenger survival rates across demographic groups, a grouped or faceted bar chart is the most effective choice. In this project, I used a bar chart with passenger class on the x-axis, survival rate on the y-axis, and gender represented by color. This layout displays survival rates across different subgroups on a single, shared scale, making direct comparisons straightforward. A pie chart or stacked bar chart would be less effective because they make it harder to compare the heights of individual categories. By looking at reports/figures/survival_by_gender_class.png, I observed that females in first class had the highest survival rate, while males in third class had the lowest. This chart highlights a strong association between demographics and survival, though it does not imply that class or gender directly caused a passenger's survival.
 
 ## 2. How does design choice affect interpretation?
 
@@ -20,7 +20,7 @@ I should explain how one concrete choice, such as a zero baseline, ordering, col
 
 My own final wording:
 
-[Write my final answer here after reviewing the evidence.]
+Design choices like color and scale determine what the viewer notices first. In the interactive grouped chart reports/interactive/survival_gender_class.html, using rate instead of raw counts ensures the visual comparison remains fair, as there were many more third-class passengers overall. Starting the survival rate axis at zero prevents the visual differences between classes from being exaggerated. I chose consistent, muted colors—blue for deceased and green for survived—to make the chart easy to read. This is much clearer than using high-contrast colors, which can distract the viewer. Keeping the legend consistent and readable on mobile screens ensures the chart communicates clearly without distorting the data, helping viewers focus on the actual patterns in the historical record.
 
 ## 3. Can you make the visualization more engaging without losing clarity?
 
@@ -30,7 +30,7 @@ I can describe one useful interaction, such as hover counts, percentages, filter
 
 My own final wording:
 
-[Write my final answer here after reviewing the evidence.]
+We can make visualizations more engaging by adding interactive features like hover tooltips and dynamic filters. In reports/interactive/titanic_sunburst.html, the viewer can click on segments to drill down from class to gender and survival status, which helps reveal specific patterns. Hovering displays the exact passenger counts and percentages, keeping the main chart clean. The static chart reports/figures/survival_by_gender_class.png is better for a quick summary, but the interactive sunburst is more engaging for presentations because it lets the audience explore the data. For my classroom presentation, I would start with the static chart to establish the main points and then use the interactive view to answer specific questions from the professor.
 
 ## 4. Question 1: If you had to visualize the Titanic dataset, which chart would best show survival by gender and class — and why?
 
@@ -40,7 +40,7 @@ I would identify a grouped or faceted bar chart as my starting point, then justi
 
 My own final wording:
 
-[Write my final answer here after reviewing the evidence.]
+A faceted or grouped bar chart is the best way to show survival by gender and class because it keeps the comparisons clear. I plotted survival rates rather than raw counts, which is important because the classes had different passenger totals. The y-axis shows the survival rate from 0.0 to 1.0, while the x-axis groups passengers by class and separates them by gender. Looking at reports/figures/survival_by_gender_class.png and reports/tables/survival_counts.csv, female survival was consistently higher than male survival across all classes. This visual arrangement shows a strong connection between these factors and survival, though we must remember these patterns are observational and do not prove direct causation.
 
 ## 5. Question 2: How can poor design choices — like misleading scales or excessive color — distort the message of a visualization?
 
@@ -50,4 +50,4 @@ I should give a specific example: truncating a bar axis can exaggerate a small d
 
 My own final wording:
 
-[Write my final answer here after reviewing the evidence.]
+Poor design choices can easily distort a visualization's message. Truncating the y-axis of a bar chart can make small differences in survival look huge, while using too many bright colors can confuse the reader. Inconsistent category labels, like leaving raw embarkation codes like 'C' and 'S' uncleaned, splits passengers into separate visual groups. In reports/interactive/parallel_categories.html, I cleaned the passenger port and class categories so the flow remains readable and accurate. In my future work, I will apply a strict design rule: always start bar chart axes at zero, use consistent colors for outcomes, and clean categories before plotting. This ensures the visual representation remains truthful and easy to understand.

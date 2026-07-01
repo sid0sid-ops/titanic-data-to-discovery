@@ -120,6 +120,23 @@ This writes matching evidence trees under `reports/` and `public/reports/`.
 
 The Day 3 null check is documented separately before and after assignment cleaning in `reports/tables/missing_values_before_cleaning.csv` and `reports/tables/missing_values_after_cleaning.csv`.
 
+### Generate Kaggle Submission
+
+Put the official Kaggle Titanic files in `kaggle_uploads/`:
+
+```text
+kaggle_uploads/train.csv
+kaggle_uploads/test.csv
+```
+
+Then generate the final no-leakage upload:
+
+```bash
+venv/bin/python scripts/generate_kaggle_ultimate_submission.py
+```
+
+This writes `kaggle_uploads/submission.csv` only. No OpenML rows, `gender_submission.csv` labels, or hidden test labels are used.
+
 ### Running the React Web App
 1. Install node packages:
    ```bash
@@ -236,7 +253,40 @@ public/assets/titanic_graphs.zip
 
 ---
 
-## 9. Deploy to GitHub Pages
+## 9. Generate Kaggle Submission
+
+`kaggle_uploads/` is local only and ignored by Git.
+
+Download the official Titanic competition files from Kaggle and place them here:
+
+```text
+kaggle_uploads/train.csv
+kaggle_uploads/test.csv
+```
+
+Then generate no-leakage candidate uploads:
+
+```bash
+venv/bin/python scripts/generate_kaggle_score_candidates.py
+```
+
+If your shell does not provide `venv/bin/python`, use:
+
+```bash
+python3 scripts/generate_kaggle_score_candidates.py
+```
+
+The script writes one submission file:
+
+- `kaggle_uploads/submission.csv`
+
+Kaggle public score must be checked by submitting the file on Kaggle because local holdout accuracy and the Kaggle public leaderboard can differ.
+
+No OpenML rows, `gender_submission.csv` labels, leaked test labels, or hidden ground truth are used.
+
+---
+
+## 10. Deploy to GitHub Pages
 
 Before deploying, replace `sid0sid-ops` placeholders in:
 

@@ -4,9 +4,9 @@ export const kaggleSteps = [
     stepNumber: 1,
     title: 'Environment & Library Setup',
     subtitle: 'Initialize Python Data Science Stack',
-    explanation: 'We load standard data science libraries (NumPy, Pandas, Matplotlib, Seaborn, Plotly) and Scikit-Learn estimators. For Kaggle, we ensure the plotting style and display configuration are set up for Google Colab runtimes.',
-    whyItMatters: 'Consolidating imports at the top of the notebook prevents runtime dependency issues and establishes reproducible random seeds.',
-    codeSnippet: 'import os\nimport re\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport plotly.express as px\nimport plotly.graph_objects as go\n\nfrom sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold\nfrom sklearn.base import BaseEstimator, TransformerMixin\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve\nfrom sklearn import set_config\n\nset_config(display="diagram")\nsns.set_theme(style="whitegrid")\nplt.rcParams["figure.figsize"] = (9, 6)\nplt.rcParams["figure.dpi"] = 120\n\nfilename_prefix = ""\nprint("✓ Step 1: Libraries and environment successfully set up!")',
+    explanation: 'We load the Python data-science stack used in the notebook: NumPy, Pandas, Matplotlib, Seaborn, Plotly, Logistic Regression, KNN, pipelines, preprocessing, cross-validation, and evaluation metrics. This follows the PPT workflow: load data, clean data, visualize to understand, model to predict, and communicate clearly.',
+    whyItMatters: 'A modern ML workflow keeps preprocessing, feature engineering, model selection, and evaluation inside reproducible code. The webpage explains the meaning; the notebook proves it by running the code in Google Colab.',
+    codeSnippet: 'import os\nimport re\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport plotly.express as px\nimport plotly.graph_objects as go\n\nfrom sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold\nfrom sklearn.base import BaseEstimator, TransformerMixin\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.neighbors import KNeighborsClassifier\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve\nfrom sklearn import set_config\n\nset_config(display="diagram")\nsns.set_theme(style="whitegrid")\nplt.rcParams["figure.figsize"] = (9, 6)\nplt.rcParams["figure.dpi"] = 120\n\nfilename_prefix = ""\nprint("✓ Step 1: Libraries and environment successfully set up!")',
     outputSummary: '✓ Step 1: Libraries and environment successfully set up!',
     keyInsight: 'Using set_config(display="diagram") allows Scikit-Learn pipelines to render visually in Jupyter/Colab notebooks.'
   },
@@ -52,11 +52,11 @@ export const kaggleSteps = [
     stepNumber: 5,
     title: 'Exploratory Data Analysis (EDA)',
     subtitle: 'Visualize survival counts and demographic relationships',
-    explanation: 'We analyze survival distributions across categories. Below, browse the static Seaborn charts exported from the notebook using a color-blind-safe palette, and review demographic patterns like survival rates by gender and class.',
+    explanation: 'We analyze survival distributions across categories. Females achieved a high survival rate of 74.2% compared to only 18.9% for males. This sharp contrast represents the "women and children first" evacuation code, which is further split by travel class: 1st-class females survived at 96.8% while 3rd-class males perished at 86.5%. Plots display these demographic survival patterns.',
     whyItMatters: 'Plotting is critical to test historical assumptions. For example, female survival (74.2%) is significantly higher than male survival (18.9%).',
     codeSnippet: '# 1. Survival Count Plot\nplt.figure(figsize=(6, 4))\nsns.countplot(data=df, x="survived", hue="survived", palette=["#D55E00", "#0072B2"], legend=False)\nplt.title("Survival Count")\nplt.show()',
     outputSummary: 'Generates 16 static plots and 4 interactive Plotly charts inside the notebook.',
-    keyInsight: 'Upper-class female passengers represent the highest survival cohort, indicating strong social class priorities during evacuation.',
+    keyInsight: 'The primary predictor is gender, but the class-gender interaction (e.g. 3rd class females surviving at 50% vs 1st class females surviving at 97%) is where the ML models find their separation boundary.',
     isGallery: true
   },
   {
@@ -186,8 +186,65 @@ simple_model.fit(X_simple, y_simple)`,
     isCoefficientsTable: true
   },
   {
-    id: 'submission',
+    id: 'threshold-lab',
     stepNumber: 15,
+    title: 'Day 8 Threshold Lab',
+    subtitle: 'Sigmoid probability, threshold, and final class',
+    explanation: 'The PPT teaches that Logistic Regression converts feature evidence into a probability between 0 and 1. The notebook then shows the exact classroom question: a 25-year-old passenger in 2nd class has predicted survival probability P = 0.62. Since 0.62 is greater than the default threshold 0.5, the final class is Survived.',
+    whyItMatters: 'The threshold is the decision line. The model first estimates confidence, then the threshold turns that confidence into a yes/no classification. This is the same idea used in modern ML systems for medical triage, fraud alerts, loan risk, and safety monitoring.',
+    codeSnippet: `def classify_probability(probability, threshold=0.5):
+    predicted_class = int(probability >= threshold)
+    label = "Survived" if predicted_class == 1 else "Did Not Survive"
+    return predicted_class, label
+
+classroom_probability = 0.62
+predicted_class, label = classify_probability(classroom_probability, threshold=0.5)
+print(f"Predicted class = {predicted_class} ({label})")
+
+quiz_probabilities = pd.DataFrame({
+    "question": ["25 years, 2nd class", "45 years, 3rd class", "10 years, 1st class"],
+    "probability": [0.62, 0.38, 0.85],
+    "threshold_0_5_result": [classify_probability(p, 0.5)[1] for p in [0.62, 0.38, 0.85]],
+    "threshold_0_4_result": [classify_probability(p, 0.4)[1] for p in [0.62, 0.38, 0.85]],
+})
+display(quiz_probabilities)`,
+    outputSummary: 'P = 0.62 with threshold 0.50 gives class 1: Survived. P = 0.38 gives Did Not Survive. P = 0.85 gives Survived.',
+    keyInsight: 'A probability is not the final answer until a threshold is chosen. This is why ROC-AUC and confusion matrices matter: they help judge decisions across thresholds.'
+  },
+  {
+    id: 'knn-lab',
+    stepNumber: 16,
+    title: 'Day 9 KNN Lab',
+    subtitle: 'Lazy learning, non-parametric prediction, scaling, distance, and K selection',
+    explanation: 'The PPT calls KNN a lazy learner because it does not build a formula during training. It stores examples and waits until prediction time. In the notebook, KNN compares Titanic passengers using scaled numeric features and encoded categorical features, then chooses the class from nearest neighbors.',
+    whyItMatters: 'KNN depends on distance. If Age and Fare are not scaled, Fare can dominate the distance calculation. Current ML practice keeps imputation, scaling, encoding, K selection, and evaluation inside one pipeline so the result is reproducible and leakage-safe.',
+    codeSnippet: `knn_numeric_features = ["age", "fare", "pclass", "sibsp", "parch"]
+knn_categorical_features = ["sex", "embarked"]
+
+knn_preprocessor = ColumnTransformer(transformers=[
+    ("num", Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
+    ]), knn_numeric_features),
+    ("cat", Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("encoder", OneHotEncoder(handle_unknown="ignore")),
+    ]), knn_categorical_features),
+])
+
+knn_grid = GridSearchCV(
+    Pipeline([("preprocess", knn_preprocessor), ("classifier", KNeighborsClassifier())]),
+    param_grid={"classifier__n_neighbors": [3, 5, 7, 9, 11]},
+    cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+    scoring="accuracy",
+)
+knn_grid.fit(X_knn_train, y_knn_train)`,
+    outputSummary: 'Colab notebook run: Best K = 3 | Best CV accuracy = 0.8034 | Holdout accuracy = 0.8156.',
+    keyInsight: 'KNN and Logistic Regression both solve supervised classification here, but their learning style is different: Logistic Regression learns coefficients; KNN keeps examples and searches neighbors.'
+  },
+  {
+    id: 'submission',
+    stepNumber: 17,
     title: 'Kaggle Submission',
     subtitle: 'Generate predictions on test.csv and export CSV',
     explanation: 'We fit our tuned pipeline on the entire train.csv dataset (all 891 rows) to capture maximum signals. We then run predictions on the unseen test.csv, saving results to submissions/submission_best_classical.csv.',
@@ -198,29 +255,29 @@ simple_model.fit(X_simple, y_simple)`,
   },
   {
     id: 'relevance',
-    stepNumber: 16,
+    stepNumber: 18,
     title: 'Economic & Real-World Relevance',
     subtitle: 'Translate machine learning tasks to industry domains',
-    explanation: 'We detail how the binary classification pipeline applies directly to real-world industrial tasks like financial credit scoring, insurance risk underwriting, and healthcare triage.',
-    whyItMatters: 'Translating models to real-world economic impacts turns a data science exercise into a valuable business solution.',
+    explanation: 'We connect this notebook to current real-world ML practice: classification thresholds for decision policy, pipelines for reproducibility, cross-validation for model selection, and transparent coefficients for explanation. The same pattern appears in credit scoring, insurance risk, healthcare triage, satellite-health monitoring, and space-weather event classification.',
+    whyItMatters: 'The creative part is not chasing a black-box model first. It is building an inspectable workflow where data quality, preprocessing, model choice, thresholds, and human communication all line up.',
     codeSnippet: '# No code cell - conceptual mapping in Jupyter markdown.',
     outputSummary: 'Conceptual mapping of binary classifiers across finance, disaster planning, and medicine.',
     keyInsight: 'Every dataset can be reframed into business insights, where passenger survival translates to client defaults or claim likelihoods.'
   },
   {
     id: 'mindset',
-    stepNumber: 17,
+    stepNumber: 19,
     title: 'Data Science Mindset',
     subtitle: 'A checklist of rigorous analytical steps',
-    explanation: 'We review the core values of high-quality data science projects: ask questions, verify data quality, plot distributions, measure realistic performance, and communicate clearly.',
-    whyItMatters: 'Adhering to professional project guidelines prevents common errors and ensures modeling outcomes are ethically valid.',
+    explanation: 'We review the professor’s data-science mindset: ask the right question before coding, clean data because it is the foundation of truth, visualize to understand, model to predict, and communicate to inspire.',
+    whyItMatters: 'This keeps the project human. The Titanic rows are not just training data; they represent people, social structure, historical decisions, and uncertainty.',
     codeSnippet: '# No code cell - methodological checklist.',
     outputSummary: 'Structured checklist of research standards.',
     keyInsight: 'Data science is not just about model complexity, but about rigorous, reproducible research standards.'
   },
   {
     id: 'reflection',
-    stepNumber: 18,
+    stepNumber: 20,
     title: 'Final Reflection',
     subtitle: 'Summary of Titanic project learnings',
     explanation: 'We summarize historical learnings. Social structures and class hierarchies directly shaped survival chances on the Titanic, which are captured clearly in demographic variables.',
@@ -229,4 +286,15 @@ simple_model.fit(X_simple, y_simple)`,
     outputSummary: 'Ethical review of machine learning applications.',
     keyInsight: 'Models reflect the historical biases of their training data. Responsible machine learning requires recognizing these structures.'
   },
+  {
+    id: 'wcg-group',
+    stepNumber: 21,
+    title: 'The Revolutionary Woman-Child-Group (WCG) Model',
+    subtitle: 'Bypassing Machine Learning with Historical Group Rules',
+    explanation: 'While classical machine learning models (like Random Forest or XGBoost) achieve local cross-validation scores around 78-83%, they often drop to ~0.77 on the Kaggle public leaderboard. The Woman-Child-Group (WCG) model is a revolutionary, rule-based approach popularized by Chris Deotte that groups passengers by Surname and Ticket. Because families and co-traveling groups shared the same evacuation fates, the model overrides survival predictions to 1 if all women/children in that group survived, and 0 if they perished. Auditing historical manifest records shows that 81% of traveling groups had unanimous fates (48% all-died, 33% all-survived), proving why group grouping is mathematically dominant. This deterministic model achieves a clean public score of 0.80382, outperforming almost all classical ML models.',
+    whyItMatters: 'This demonstrates that feature engineering and domain-specific group logic are far more critical than choosing a complex model. A machine learning model is only as good as the relationship groupings it can represent.',
+    codeSnippet: 'def wcg_predict(train, test):\n    comb = pd.concat([train, test])\n    comb["WC"] = (comb["Sex"] == "female") | (comb["Title"] == "Master")\n    # Group by Surname and Ticket, then override test set\n    # predictions to match group survival rates of 0.0 or 1.0\n    return out',
+    outputSummary: 'Kaggle Public Score: 0.80382 (WCG) | 0.79186 (WCG + XGBoost Hybrid)',
+    keyInsight: 'The fact that 81% of co-traveling groups shared the exact same fate explains why ticket and family grouping acts as a "cheat code" for the Titanic dataset—it bypasses individual noise in favor of group solidarity.'
+  }
 ];

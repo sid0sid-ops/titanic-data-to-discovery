@@ -8,7 +8,10 @@ from pathlib import Path
 import json
 import textwrap
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+try:
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+except NameError:
+    PROJECT_ROOT = Path.cwd()
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 NOTEBOOKS_DIR.mkdir(exist_ok=True)
 
@@ -61,6 +64,7 @@ def main():
             import matplotlib.pyplot as plt
             import seaborn as sns
             import plotly.express as px
+            import plotly.graph_objects as go
 
             from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
             from sklearn.base import BaseEstimator, TransformerMixin
@@ -69,6 +73,7 @@ def main():
             from sklearn.impute import SimpleImputer
             from sklearn.preprocessing import StandardScaler, OneHotEncoder
             from sklearn.linear_model import LogisticRegression
+            from sklearn.neighbors import KNeighborsClassifier
             from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve
             from sklearn import set_config
 
@@ -126,6 +131,15 @@ def main():
             print("Train Shape:", df.shape)
             print("Test Shape:", test.shape)
             df.info()
+        """),
+        make_md_cell("""
+            ## 2.1 Checking for Missing Values
+            
+            Before performing any operations or cleaning, we audit the dataset to identify columns with missing (null) values.
+        """),
+        make_code_cell(r"""
+            # Checking for empty / missing values in the train DataFrame
+            display(df.isnull().sum())
         """),
         make_md_cell("""
             ## 3. Column Cleaning and Data Dictionary
@@ -471,6 +485,9 @@ def main():
         """),
         make_code_cell(r"""
             # 4. Interactive Parallel Categories Flow
+            import plotly.express as px
+            import plotly.graph_objects as go
+
             vis_df = df.copy()
             vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
             vis_df["Ticket Class"] = vis_df["pclass"].map({1: "1st Class", 2: "2nd Class", 3: "3rd Class"})
@@ -496,17 +513,35 @@ def main():
                 categories=["Died", "Survived"],
                 ordered=True,
             )
-            parcat_df = vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
-            
-            fig_parcat = px.parallel_categories(
-                parcat_df,
-                dimensions=["Ticket Class", "Sex", "Embarked Port", "Survival Status"],
-                color="survived", 
-                color_continuous_scale=px.colors.sequential.Viridis,
-                title="Parallel Categories: Demographic Flow to Survival Outcome"
+            parcat_df = (
+                vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
+                .groupby(["Ticket Class", "Sex", "Embarked Port", "Survival Status"], observed=True)
+                .size()
+                .reset_index(name="Passenger Count")
             )
-            fig_parcat.update_traces(domain=dict(y=[0.12, 0.98]))
+            parcat_df["Survival Color"] = parcat_df["Survival Status"].map({"Died": 0, "Survived": 1})
+
+            fig_parcat = go.Figure(
+                go.Parcats(
+                    dimensions=[
+                        go.parcats.Dimension(values=parcat_df["Ticket Class"], label="Ticket Class"),
+                        go.parcats.Dimension(values=parcat_df["Sex"], label="Sex"),
+                        go.parcats.Dimension(values=parcat_df["Embarked Port"], label="Embarked Port"),
+                        go.parcats.Dimension(values=parcat_df["Survival Status"], label="Survival Status"),
+                    ],
+                    counts=parcat_df["Passenger Count"],
+                    line={
+                        "color": parcat_df["Survival Color"],
+                        "colorscale": px.colors.sequential.Viridis,
+                        "cmin": 0,
+                        "cmax": 1,
+                        "colorbar": {"title": "Survived"},
+                    },
+                    hoverinfo="count+probability",
+                )
+            )
             fig_parcat.update_layout(
+                title="Parallel Categories: Demographic Flow to Survival Outcome",
                 autosize=False,
                 height=700,
                 width=1300,
@@ -908,7 +943,130 @@ def main():
                Regression transforms descriptive parameters into a linear equation that maps attributes to log-odds ratios, showing how statistical coefficients parameterize classification models.
         """),
         make_md_cell("""
-            ## 19. Export Kaggle Submission
+            ## 19. Day 8 Classroom Question — Logistic Regression Threshold
+
+            **Question:** A 25-year-old passenger in 2nd class has a predicted survival probability `P = 0.62`. Classify the outcome and explain why the threshold of `0.5` matters.
+
+            **What I learned from class:** Logistic Regression does not directly say only yes/no. It first gives a probability between 0 and 1 using the sigmoid function. The threshold is the line where we convert that probability into a class.
+        """),
+        make_code_cell(r"""
+            def classify_probability(probability, threshold=0.5):
+                predicted_class = int(probability >= threshold)
+                label = "Survived" if predicted_class == 1 else "Did Not Survive"
+                return predicted_class, label
+
+            classroom_probability = 0.62
+            predicted_class, label = classify_probability(classroom_probability, threshold=0.5)
+
+            print("=== Day 8 Mini Quiz: Threshold Classification ===")
+            print("Passenger profile: Age=25, Pclass=2")
+            print(f"Given predicted probability P = {classroom_probability:.2f}")
+            print("Threshold = 0.50")
+            print(f"Predicted class = {predicted_class} ({label})")
+            print("\nExplanation:")
+            print("Because 0.62 is greater than 0.50, the model classifies the passenger as Survived.")
+            print("The threshold matters because it turns a probability into a final decision.")
+        """),
+        make_md_cell("""
+            The same idea applies to the other quiz probabilities:
+
+            - `P = 0.38` is below `0.5`, so the passenger is classified as **Did Not Survive**.
+            - If the threshold changes to `0.4`, `0.38` is still below the threshold, so the class remains **Did Not Survive**, but it is close to the decision boundary.
+            - `P = 0.85` is a strong **Survived** classification.
+            - If the coefficient for `female` is positive, it means being female increases the log-odds of survival in this fitted model.
+        """),
+        make_code_cell(r"""
+            quiz_probabilities = pd.DataFrame({
+                "question": ["25 years, 2nd class", "45 years, 3rd class", "10 years, 1st class"],
+                "probability": [0.62, 0.38, 0.85],
+                "threshold_0_5_result": [classify_probability(p, 0.5)[1] for p in [0.62, 0.38, 0.85]],
+                "threshold_0_4_result": [classify_probability(p, 0.4)[1] for p in [0.62, 0.38, 0.85]],
+            })
+            display(quiz_probabilities)
+        """),
+        make_md_cell("""
+            ## 20. Day 8 Proof from the Kaggle Model
+
+            The classroom question gives `P = 0.62` directly. Below, I also use the trained notebook pipeline to show how probability is produced in real code for a similar passenger profile. This connects the theory term **sigmoid probability** with actual notebook execution.
+        """),
+        make_code_cell(r"""
+            classroom_passenger = pd.DataFrame([{
+                "pclass": 2,
+                "sex": "female",
+                "age": 25.0,
+                "sibsp": 0,
+                "parch": 0,
+                "fare": 26.0,
+                "embarked": "S",
+                "cabin": np.nan,
+                "name": "Classroom, Miss. Logistic Example"
+            }])
+
+            model_probability = best_pipeline.predict_proba(classroom_passenger)[0, 1]
+            model_prediction = best_pipeline.predict(classroom_passenger)[0]
+            print("=== Model-backed Logistic Regression Example ===")
+            print(f"Notebook model probability: {model_probability:.3f}")
+            print(f"Notebook model class: {'Survived' if model_prediction == 1 else 'Did Not Survive'}")
+            print("Human note: the exact probability depends on all fitted features, but the threshold rule is the same.")
+        """),
+        make_md_cell("""
+            ## 21. Day 9 Classroom Idea — KNN, Scaling, and Choosing K
+
+            **What I learned from class:** KNN is a lazy, non-parametric learner. It stores the examples and waits until prediction time. Because it compares distance between passengers, scaling is important; otherwise a large-range column such as Fare can dominate Age.
+        """),
+        make_code_cell(r"""
+            knn_numeric_features = ["age", "fare", "pclass", "sibsp", "parch"]
+            knn_categorical_features = ["sex", "embarked"]
+            knn_features = knn_numeric_features + knn_categorical_features
+            knn_X = df[knn_features].copy()
+            knn_y = df["survived"].astype(int)
+
+            X_knn_train, X_knn_test, y_knn_train, y_knn_test = train_test_split(
+                knn_X, knn_y, test_size=0.2, random_state=42, stratify=knn_y
+            )
+
+            knn_preprocessor = ColumnTransformer(transformers=[
+                ("num", Pipeline([
+                    ("imputer", SimpleImputer(strategy="median")),
+                    ("scaler", StandardScaler()),
+                ]), knn_numeric_features),
+                ("cat", Pipeline([
+                    ("imputer", SimpleImputer(strategy="most_frequent")),
+                    ("encoder", OneHotEncoder(handle_unknown="ignore")),
+                ]), knn_categorical_features),
+            ])
+
+            knn_pipeline = Pipeline(steps=[
+                ("preprocess", knn_preprocessor),
+                ("classifier", KNeighborsClassifier())
+            ])
+
+            knn_grid = GridSearchCV(
+                knn_pipeline,
+                param_grid={"classifier__n_neighbors": [3, 5, 7, 9, 11]},
+                cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+                scoring="accuracy",
+                n_jobs=-1,
+            )
+            knn_grid.fit(X_knn_train, y_knn_train)
+
+            knn_results = pd.DataFrame(knn_grid.cv_results_)[
+                ["param_classifier__n_neighbors", "mean_test_score", "rank_test_score"]
+            ].sort_values("rank_test_score")
+            display(knn_results)
+
+            knn_holdout_accuracy = accuracy_score(y_knn_test, knn_grid.predict(X_knn_test))
+            print("=== KNN Result from Notebook Code ===")
+            print("Best K:", knn_grid.best_params_["classifier__n_neighbors"])
+            print(f"Best CV accuracy: {knn_grid.best_score_:.4f}")
+            print(f"Holdout accuracy: {knn_holdout_accuracy:.4f}")
+            print("Human note: adding Sex and Embarked improved the setup because KNN needs relevant passenger similarity features, not only numeric distance.")
+        """),
+        make_md_cell("""
+            **My human explanation:** Logistic Regression learns a formula before prediction, so it is an eager parametric model. KNN does not learn a fixed formula; it compares the new passenger with nearby passengers. That is why the professor called it lazy learning. In my notebook, I used scaling before KNN because distance-based algorithms need fair feature ranges.
+        """),
+        make_md_cell("""
+            ## 22. Export Kaggle Submission
             
             Lastly, we fit our best parameter pipeline on the *complete* training dataset (to maximize model exposure) and generate predictions on Kaggle's unseen `test` profiles.
         """),

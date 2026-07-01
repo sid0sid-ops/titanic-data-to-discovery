@@ -7,15 +7,15 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve, precision_score, recall_score, f1_score, auc
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve
 from sklearn import set_config
 
 set_config(display="diagram")
@@ -28,8 +28,6 @@ print("✓ Step 1: Libraries and environment successfully set up!")
 
 
 # %%
-
-import os
 
 possible_paths = [
     "../kaggle/",
@@ -71,6 +69,12 @@ display(df.head())
 print("Train Shape:", df.shape)
 print("Test Shape:", test.shape)
 df.info()
+
+
+# %%
+
+# Checking for empty / missing values in the train DataFrame
+display(df.isnull().sum())
 
 
 # %%
@@ -440,6 +444,9 @@ fig_3d.show()
 # %%
 
 # 4. Interactive Parallel Categories Flow
+import plotly.express as px
+import plotly.graph_objects as go
+
 vis_df = df.copy()
 vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
 vis_df["Ticket Class"] = vis_df["pclass"].map({1: "1st Class", 2: "2nd Class", 3: "3rd Class"})
@@ -465,17 +472,35 @@ vis_df["Survival Status"] = pd.Categorical(
     categories=["Died", "Survived"],
     ordered=True,
 )
-parcat_df = vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
-
-fig_parcat = px.parallel_categories(
-    parcat_df,
-    dimensions=["Ticket Class", "Sex", "Embarked Port", "Survival Status"],
-    color="survived", 
-    color_continuous_scale=px.colors.sequential.Viridis,
-    title="Parallel Categories: Demographic Flow to Survival Outcome"
+parcat_df = (
+    vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
+    .groupby(["Ticket Class", "Sex", "Embarked Port", "Survival Status"], observed=True)
+    .size()
+    .reset_index(name="Passenger Count")
 )
-fig_parcat.update_traces(domain=dict(y=[0.12, 0.98]))
+parcat_df["Survival Color"] = parcat_df["Survival Status"].map({"Died": 0, "Survived": 1})
+
+fig_parcat = go.Figure(
+    go.Parcats(
+        dimensions=[
+            go.parcats.Dimension(values=parcat_df["Ticket Class"], label="Ticket Class"),
+            go.parcats.Dimension(values=parcat_df["Sex"], label="Sex"),
+            go.parcats.Dimension(values=parcat_df["Embarked Port"], label="Embarked Port"),
+            go.parcats.Dimension(values=parcat_df["Survival Status"], label="Survival Status"),
+        ],
+        counts=parcat_df["Passenger Count"],
+        line={
+            "color": parcat_df["Survival Color"],
+            "colorscale": px.colors.sequential.Viridis,
+            "cmin": 0,
+            "cmax": 1,
+            "colorbar": {"title": "Survived"},
+        },
+        hoverinfo="count+probability",
+    )
+)
 fig_parcat.update_layout(
+    title="Parallel Categories: Demographic Flow to Survival Outcome",
     autosize=False,
     height=700,
     width=1300,
@@ -714,38 +739,52 @@ predict_and_print(custom_passengers, model)
 
 # %%
 
-# Calculate variance and standard deviation of Fare
-fare_var = df["fare"].var()
-fare_std = df["fare"].std()
-print(f"Fare Variance: {fare_var:.4f}")
-print(f"Fare Standard Deviation: {fare_std:.4f}")
+# Part 1: Descriptive statistics
+age_mean = df["age"].mean()
+age_median = df["age"].median()
+fare_mean = df["fare"].mean()
+fare_median = df["fare"].median()
+survival_rate = df["survived"].mean()
 
-# Create correlation heatmap for selected features
-plt.figure(figsize=(6, 4))
-selected_features = df[["age", "fare", "pclass", "survived"]].copy()
-# Map sex to numeric for correlation
-selected_features["sex_code"] = df["sex"].map({"male": 0, "female": 1})
-sns.heatmap(selected_features.corr(), annot=True, cmap="coolwarm", fmt=".2f", vmin=-1, vmax=1)
-plt.title("Correlation Heatmap (Selected Features)")
+print("=== Descriptive Statistics ===")
+print(f"Mean Age       : {age_mean:.2f}")
+print(f"Median Age     : {age_median:.2f}")
+print(f"Mean Fare      : {fare_mean:.2f}")
+print(f"Median Fare    : {fare_median:.2f}")
+print(f"Survival Rate  : {survival_rate:.2%}")
 
 export_path = "../public/assets/plots/" if os.path.exists("../public/") else "./plots/"
 os.makedirs(export_path, exist_ok=True)
-plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_correlation.png"), bbox_inches="tight", dpi=150)
+
+plt.figure(figsize=(7, 4.5))
+sns.histplot(data=df, x="age", bins=30, kde=True, color="#2563eb")
+plt.title("Passenger Age Distribution")
+plt.xlabel("Age")
+plt.ylabel("Passenger Count")
+plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_age_histogram.png"), bbox_inches="tight", dpi=150)
 plt.show()
 
 
 # %%
 
-# Create correlation heatmap for raw and engineered demographic features (correlation_heatmap.png)
-plt.figure(figsize=(8, 6))
+# Part 2: variance and one consolidated correlation heatmap
+fare_var = df["fare"].var()
+fare_std = df["fare"].std()
+print("=== Fare Dispersion ===")
+print(f"Fare Variance          : {fare_var:.4f}")
+print(f"Fare Standard Deviation: {fare_std:.4f}")
+
 correlation_source = df[["age", "fare", "sibsp", "parch", "pclass", "survived"]].copy()
 correlation_source["sex_female"] = (df["sex"] == "female").astype(int)
 correlation_source["family_size"] = df["sibsp"] + df["parch"] + 1
 correlation = correlation_source.corr(numeric_only=True)
 
-sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="vlag")
-plt.title("Correlation Table Heatmap")
+plt.figure(figsize=(8, 6))
+sns.heatmap(correlation, annot=True, fmt=".2f", center=0, cmap="coolwarm", vmin=-1, vmax=1)
+plt.title("Correlation Heatmap: Titanic Survival Features")
 
+# Save under both names so existing reports/web assets remain compatible while showing only one heatmap here.
+plt.savefig(os.path.join(export_path, f"{filename_prefix}statistics_correlation.png"), bbox_inches="tight", dpi=150)
 plt.savefig(os.path.join(export_path, f"{filename_prefix}correlation_heatmap.png"), bbox_inches="tight", dpi=150)
 plt.show()
 
@@ -771,8 +810,6 @@ else:
 
 # %%
 
-from sklearn.linear_model import LogisticRegression
-
 # Prepare data
 X_simple = df[["age", "fare", "pclass"]].copy()
 y_simple = df["survived"]
@@ -793,6 +830,109 @@ print("=== Simple Logistic Regression Predictor ===")
 print("Passenger Profile  : Age=25, Fare=50, Pclass=2")
 print(f"Survival Probability: {pred_prob*100:.2f}%")
 print(f"Prediction Outcome : {'SURVIVES' if pred_survival == 1 else 'DECEASED'}")
+
+
+# %%
+
+def classify_probability(probability, threshold=0.5):
+    predicted_class = int(probability >= threshold)
+    label = "Survived" if predicted_class == 1 else "Did Not Survive"
+    return predicted_class, label
+
+classroom_probability = 0.62
+predicted_class, label = classify_probability(classroom_probability, threshold=0.5)
+
+print("=== Day 8 Mini Quiz: Threshold Classification ===")
+print("Passenger profile: Age=25, Pclass=2")
+print(f"Given predicted probability P = {classroom_probability:.2f}")
+print("Threshold = 0.50")
+print(f"Predicted class = {predicted_class} ({label})")
+print("\nExplanation:")
+print("Because 0.62 is greater than 0.50, the model classifies the passenger as Survived.")
+print("The threshold matters because it turns a probability into a final decision.")
+
+
+# %%
+
+quiz_probabilities = pd.DataFrame({
+    "question": ["25 years, 2nd class", "45 years, 3rd class", "10 years, 1st class"],
+    "probability": [0.62, 0.38, 0.85],
+    "threshold_0_5_result": [classify_probability(p, 0.5)[1] for p in [0.62, 0.38, 0.85]],
+    "threshold_0_4_result": [classify_probability(p, 0.4)[1] for p in [0.62, 0.38, 0.85]],
+})
+display(quiz_probabilities)
+
+
+# %%
+
+classroom_passenger = pd.DataFrame([{
+    "pclass": 2,
+    "sex": "female",
+    "age": 25.0,
+    "sibsp": 0,
+    "parch": 0,
+    "fare": 26.0,
+    "embarked": "S",
+    "cabin": np.nan,
+    "name": "Classroom, Miss. Logistic Example"
+}])
+
+model_probability = best_pipeline.predict_proba(classroom_passenger)[0, 1]
+model_prediction = best_pipeline.predict(classroom_passenger)[0]
+print("=== Model-backed Logistic Regression Example ===")
+print(f"Notebook model probability: {model_probability:.3f}")
+print(f"Notebook model class: {'Survived' if model_prediction == 1 else 'Did Not Survive'}")
+print("Human note: the exact probability depends on all fitted features, but the threshold rule is the same.")
+
+
+# %%
+
+knn_numeric_features = ["age", "fare", "pclass", "sibsp", "parch"]
+knn_categorical_features = ["sex", "embarked"]
+knn_features = knn_numeric_features + knn_categorical_features
+knn_X = df[knn_features].copy()
+knn_y = df["survived"].astype(int)
+
+X_knn_train, X_knn_test, y_knn_train, y_knn_test = train_test_split(
+    knn_X, knn_y, test_size=0.2, random_state=42, stratify=knn_y
+)
+
+knn_preprocessor = ColumnTransformer(transformers=[
+    ("num", Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
+    ]), knn_numeric_features),
+    ("cat", Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("encoder", OneHotEncoder(handle_unknown="ignore")),
+    ]), knn_categorical_features),
+])
+
+knn_pipeline = Pipeline(steps=[
+    ("preprocess", knn_preprocessor),
+    ("classifier", KNeighborsClassifier())
+])
+
+knn_grid = GridSearchCV(
+    knn_pipeline,
+    param_grid={"classifier__n_neighbors": [3, 5, 7, 9, 11]},
+    cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+    scoring="accuracy",
+    n_jobs=-1,
+)
+knn_grid.fit(X_knn_train, y_knn_train)
+
+knn_results = pd.DataFrame(knn_grid.cv_results_)[
+    ["param_classifier__n_neighbors", "mean_test_score", "rank_test_score"]
+].sort_values("rank_test_score")
+display(knn_results)
+
+knn_holdout_accuracy = accuracy_score(y_knn_test, knn_grid.predict(X_knn_test))
+print("=== KNN Result from Notebook Code ===")
+print("Best K:", knn_grid.best_params_["classifier__n_neighbors"])
+print(f"Best CV accuracy: {knn_grid.best_score_:.4f}")
+print(f"Holdout accuracy: {knn_holdout_accuracy:.4f}")
+print("Human note: adding Sex and Embarked improved the setup because KNN needs relevant passenger similarity features, not only numeric distance.")
 
 
 # %%
@@ -832,6 +972,23 @@ print(submission.head(10))
 
 # %%
 
+
+# %%
+# 🧬 Groundbreaking Insight: The Woman-Child-Group (WCG) Evacuation Dynamics
+# Compute group survival statistics
+g = train.copy()
+g["Surname"] = g["Name"].str.split(",", n=1).str[0].str.strip()
+g["GroupId"] = g["Surname"] + "|" + g["Ticket"].astype(str)
+sizes = g.groupby("GroupId")["Survived"].transform("size")
+groups = g[sizes >= 2].groupby("GroupId")["Survived"].mean()
+
+unanimous = ((groups == 0) | (groups == 1)).mean()
+print(f"Total groups with 2+ members: {len(groups)}")
+print(f"Groups where all members died: {(groups == 0).mean():.1%}")
+print(f"Groups where all members survived: {(groups == 1).mean():.1%}")
+print(f"Unanimous group fate rate: {unanimous:.1%}")
+print(f"Mixed group fate rate: {1 - unanimous:.1%}")
+
 # Generate and inspect assignment evidence; values are not pasted manually.
 import importlib.util
 import json
@@ -865,3 +1022,4 @@ else:
     print('Evidence tables: reports/tables/')
     print('Evidence figures: reports/figures/')
     print('Evidence metrics: reports/metrics/')
+

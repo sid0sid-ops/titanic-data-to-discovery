@@ -61,6 +61,7 @@ def main():
             import matplotlib.pyplot as plt
             import seaborn as sns
             import plotly.express as px
+            import plotly.graph_objects as go
 
             from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
             from sklearn.base import BaseEstimator, TransformerMixin
@@ -443,18 +444,63 @@ def main():
         """),
         make_code_cell(r"""
             # 4. Interactive Parallel Categories Flow
+            import plotly.express as px
+            import plotly.graph_objects as go
+
             vis_df = df.copy()
             vis_df["Survival Status"] = vis_df["survived"].map({0: "Died", 1: "Survived"})
             vis_df["Ticket Class"] = vis_df["pclass"].map({1: "1st Class", 2: "2nd Class", 3: "3rd Class"})
+            vis_df["Sex"] = vis_df["sex"].astype(str).str.strip().str.title()
+            vis_df["Embarked Port"] = vis_df["embarked"].astype(str).str.strip().str.upper().map({
+                "S": "Southampton",
+                "C": "Cherbourg",
+                "Q": "Queenstown",
+            })
+            vis_df["Ticket Class"] = pd.Categorical(
+                vis_df["Ticket Class"],
+                categories=["1st Class", "2nd Class", "3rd Class"],
+                ordered=True,
+            )
+            vis_df["Sex"] = pd.Categorical(vis_df["Sex"], categories=["Female", "Male"], ordered=True)
+            vis_df["Embarked Port"] = pd.Categorical(
+                vis_df["Embarked Port"],
+                categories=["Cherbourg", "Queenstown", "Southampton"],
+                ordered=True,
+            )
+            vis_df["Survival Status"] = pd.Categorical(
+                vis_df["Survival Status"],
+                categories=["Died", "Survived"],
+                ordered=True,
+            )
+            parcat_df = (
+                vis_df.dropna(subset=["Embarked Port", "Sex", "Ticket Class", "Survival Status"])
+                .groupby(["Ticket Class", "Sex", "Embarked Port", "Survival Status"], observed=True)
+                .size()
+                .reset_index(name="Passenger Count")
+            )
+            parcat_df["Survival Color"] = parcat_df["Survival Status"].map({"Died": 0, "Survived": 1})
             
-            fig_parcat = px.parallel_categories(
-                vis_df.dropna(subset=["embarked", "sex", "Ticket Class", "Survival Status"]), 
-                dimensions=["Ticket Class", "sex", "embarked", "Survival Status"],
-                color="survived", 
-                color_continuous_scale=px.colors.sequential.Viridis,
-                title="Parallel Categories: Demographic Flow to Survival Outcome"
+            fig_parcat = go.Figure(
+                go.Parcats(
+                    dimensions=[
+                        go.parcats.Dimension(values=parcat_df["Ticket Class"], label="Ticket Class"),
+                        go.parcats.Dimension(values=parcat_df["Sex"], label="Sex"),
+                        go.parcats.Dimension(values=parcat_df["Embarked Port"], label="Embarked Port"),
+                        go.parcats.Dimension(values=parcat_df["Survival Status"], label="Survival Status"),
+                    ],
+                    counts=parcat_df["Passenger Count"],
+                    line={
+                        "color": parcat_df["Survival Color"],
+                        "colorscale": px.colors.sequential.Viridis,
+                        "cmin": 0,
+                        "cmax": 1,
+                        "colorbar": {"title": "Survived"},
+                    },
+                    hoverinfo="count+probability",
+                )
             )
             fig_parcat.update_layout(
+                title="Parallel Categories: Demographic Flow to Survival Outcome",
                 autosize=False,
                 height=700,
                 width=1300,

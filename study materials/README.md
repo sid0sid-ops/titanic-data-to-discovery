@@ -2,6 +2,12 @@
 
 Use this folder as the source for classroom material, assignments, and future concept updates.
 
+## Quick Entry Point
+
+- Inventory and update rules: [material_index.md](material_index.md)
+- Day mapping: [../docs/class_schedule.md](../docs/class_schedule.md)
+- Exact professor prompts: [../docs/professor_questions.md](../docs/professor_questions.md)
+
 ## Main Rule
 
 When new study material is added:
